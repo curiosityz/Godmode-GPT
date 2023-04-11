@@ -116,6 +116,14 @@ def print_assistant_thoughts(assistant_reply):
         # Speak the assistant's thoughts
         if cfg.speak_mode and assistant_thoughts_speak:
             speak.say_text(assistant_thoughts_speak)
+        
+        return {
+            "thoughts": assistant_thoughts_text,
+            "reasoning": assistant_thoughts_reasoning,
+            "plan": assistant_thoughts_plan,
+            "criticism": assistant_thoughts_criticism,
+            "speak": assistant_thoughts_speak
+        }
 
         return assistant_reply_json
     except json.decoder.JSONDecodeError as e:
