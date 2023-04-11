@@ -96,7 +96,8 @@ app = Flask(__name__)
 @app.after_request
 def after_request(response):
     white_origin= ['http://localhost:3000']
-    if request.headers['Origin'] in white_origin:
+    # if request.headers['Origin'] in white_origin:
+    if True:
         response.headers['Access-Control-Allow-Origin'] = request.headers['Origin'] 
         response.headers['Access-Control-Allow-Methods'] = 'PUT,GET,POST,DELETE'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
