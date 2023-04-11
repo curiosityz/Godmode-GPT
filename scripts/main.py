@@ -184,7 +184,7 @@ def load_variables(config_file="config.yaml"):
 def construct_prompt():
     """Construct the prompt for the AI to respond to"""
     config = AIConfig.load()
-    if config.ai_name:
+    if False and config.ai_name:
         print_to_console(
             f"Welcome back! ",
             Fore.GREEN,
@@ -315,7 +315,7 @@ memory = get_memory(cfg, init=True)
 print('Using memory of type: ' + memory.__class__.__name__)
 
 # Interaction Loop
-while True:
+while False:
     # Send message to AI, get response
     with Spinner("Thinking... "):
         assistant_reply = chat.chat_with_ai(
