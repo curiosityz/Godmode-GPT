@@ -1,5 +1,7 @@
 import json
 import random
+
+import openai
 import commands as cmd
 from main import construct_prompt, print_assistant_thoughts
 import utils
@@ -69,7 +71,7 @@ def interact_with_ai(memory, command_name, arguments):
         memory,
         4000)
     
-    print_assistant_thoughts(assistant_reply)
+    thoughts = print_assistant_thoughts(assistant_reply)
 
     # memory_to_add = f"Assistant Reply: {assistant_reply} " \
     #                 f"\nResult: {result} " \
@@ -86,7 +88,7 @@ def interact_with_ai(memory, command_name, arguments):
     except Exception as e:
         print(e)
 
-    return command_name, arguments, assistant_reply, output
+    return command_name, arguments, thoughts, output
 
 # make an api using flask
 
@@ -109,7 +111,12 @@ def simple_api():
 
     command_name = request_data["command"]
     arguments = request_data["arguments"]
+    openai_key = request_data["openai_key"]
+    
+    openai.api_key = openai_key
+    
     memory = get_memory(cfg)
+    cfg.openai_api_key = openai_key
 
     try:
         command_name, arguments, assistant_reply, output = interact_with_ai(memory, command_name, arguments)
