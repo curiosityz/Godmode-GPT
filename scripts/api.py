@@ -1,7 +1,7 @@
 import json
 import random
 import commands as cmd
-from main import construct_prompt
+from main import construct_prompt, print_assistant_thoughts
 import utils
 from memory import get_memory
 import data
@@ -24,7 +24,10 @@ full_message_history = []
 
 START = "###start###"
 
+assistant_reply = ""
+
 def interact_with_ai(memory, command_name, arguments):
+    global assistant_reply
     prompt = construct_prompt()
 
     user_input = arguments if command_name == "human_feedback" else "GENERATE NEXT COMMAND JSON"
@@ -49,6 +52,14 @@ def interact_with_ai(memory, command_name, arguments):
                     "system", "Unable to execute command")
 
         full_message_history.append(output)
+    else:
+        user_input = "Determine which next command to use, and respond using the format specified above:"
+
+    memory_to_add = f"Assistant Reply: {assistant_reply} " \
+                    f"\nResult: {result} " \
+                    f"\nHuman Feedback: {user_input} "
+
+    memory.add(memory_to_add)
 
     # Send message to AI, get response
     assistant_reply = chat.chat_with_ai(
@@ -57,12 +68,12 @@ def interact_with_ai(memory, command_name, arguments):
         full_message_history,
         memory,
         4000)
+    
+    print_assistant_thoughts(assistant_reply)
 
-    memory_to_add = f"Assistant Reply: {assistant_reply} " \
-                    f"\nResult: {result} " \
-                    f"\nHuman Feedback: {user_input} "
-
-    memory.add(memory_to_add)
+    # memory_to_add = f"Assistant Reply: {assistant_reply} " \
+    #                 f"\nResult: {result} " \
+    #                 f"\nHuman Feedback: {user_input} "
 
     # memory (pinecone or whatever it called or just local files)
     # full message hist (amazon smth)
@@ -77,16 +88,38 @@ def interact_with_ai(memory, command_name, arguments):
 
     return command_name, arguments, assistant_reply, output
 
+# make an api using flask
+
+from flask import Flask, request
+app = Flask(__name__)
+
+@app.after_request
+def after_request(response):
+    white_origin= ['http://localhost:3000']
+    if request.headers['Origin'] in white_origin:
+        response.headers['Access-Control-Allow-Origin'] = request.headers['Origin'] 
+        response.headers['Access-Control-Allow-Methods'] = 'PUT,GET,POST,DELETE'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    return response
+
+@app.route("/api", methods=['POST'])
 def simple_api():
+    request_data = request.get_json()
+
+    command_name = request_data["command"]
+    arguments = request_data["arguments"]
     memory = get_memory(cfg)
-    while True:
-        command_name, arguments, assistant_reply, output = interact_with_ai(memory, START, "")
 
-a,b,c,e = interact_with_ai(get_memory(cfg), "google", {
-    "input": "gpt startups ideas"
-})
-print("command",a)
-print("arguments",b)
-print("assistant_reply",c)
-print("output",e)
+    try:
+        command_name, arguments, assistant_reply, output = interact_with_ai(memory, command_name, arguments)
+    except Exception as e:
+        print(e)
 
+    return json.dumps({
+        "command": command_name,
+        "arguments": arguments,
+        "assistant_reply": assistant_reply,
+        "output": output
+    })
+
+app.run(port=5000)
