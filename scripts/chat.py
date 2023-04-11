@@ -41,7 +41,7 @@ def generate_context(prompt, relevant_memory, full_message_history, model):
     return next_message_to_add_index, current_tokens_used, insertion_index, current_context
 
 
-# TODO: Change debug from hardcode to argument
+# TODO: Change debug_mode from hardcode to argument
 def chat_with_ai(
         prompt,
         user_input,
