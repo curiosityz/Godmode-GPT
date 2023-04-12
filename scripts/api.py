@@ -131,7 +131,7 @@ def simple_api():
 
     conf = AIConfig(
         ai_name=ai_name,
-        ai_description=ai_description,
+        ai_role=ai_description,
         ai_goals=ai_goals,
     )
     try:
