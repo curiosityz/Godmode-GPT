@@ -341,7 +341,7 @@ user_input = (
 
 # Initialize memory and make sure it is empty.
 # this is particularly important for indexing and referencing pinecone memory
-memory = get_memory(cfg, init=True)
+memory = get_memory(cfg)
 print("Using memory of type: " + memory.__class__.__name__)
 
 # Interaction Loop
