@@ -25,8 +25,8 @@ def check_openai_api_key():
     """Check if the OpenAI API key is set in config.py or as an environment variable."""
     if not cfg.openai_api_key:
         print(
-            Fore.RED +
-            "Please set your OpenAI API key in config.py or as an environment variable."
+            Fore.RED
+            + "Please set your OpenAI API key in config.py or as an environment variable."
         )
         print("You can get your key from https://beta.openai.com/account/api-keys")
         exit(1)
@@ -107,7 +107,7 @@ def print_assistant_thoughts(assistant_reply):
                 assistant_thoughts_plan = str(assistant_thoughts_plan)
 
             # Split the input_string using the newline character and dashes
-            lines = assistant_thoughts_plan.split('\n')
+            lines = assistant_thoughts_plan.split("\n")
             for line in lines:
                 line = line.lstrip("- ")
                 logger.typewriter_log("- ", Fore.GREEN, line.strip())
@@ -116,13 +116,13 @@ def print_assistant_thoughts(assistant_reply):
         # Speak the assistant's thoughts
         if cfg.speak_mode and assistant_thoughts_speak:
             speak.say_text(assistant_thoughts_speak)
-        
+
         return {
             "thoughts": assistant_thoughts_text,
             "reasoning": assistant_thoughts_reasoning,
             "plan": assistant_thoughts_plan,
             "criticism": assistant_thoughts_criticism,
-            "speak": assistant_thoughts_speak
+            "speak": assistant_thoughts_speak,
         }
 
         return assistant_reply_json
@@ -163,7 +163,9 @@ def load_variables(config_file="config.yaml"):
 
     if not ai_goals:
         print("Enter up to 5 goals for your AI: ")
-        print("For example: \nIncrease net worth, Grow Twitter Account, Develop and manage multiple businesses autonomously'")
+        print(
+            "For example: \nIncrease net worth, Grow Twitter Account, Develop and manage multiple businesses autonomously'"
+        )
         print("Enter nothing to load defaults, enter nothing when finished.")
         ai_goals = []
         for i in range(5):
@@ -172,7 +174,11 @@ def load_variables(config_file="config.yaml"):
                 break
             ai_goals.append(ai_goal)
         if len(ai_goals) == 0:
-            ai_goals = ["Increase net worth", "Grow Twitter Account", "Develop and manage multiple businesses autonomously"]
+            ai_goals = [
+                "Increase net worth",
+                "Grow Twitter Account",
+                "Develop and manage multiple businesses autonomously",
+            ]
 
     # Save variables to yaml file
     config = {"ai_name": ai_name, "ai_role": ai_role, "ai_goals": ai_goals}
@@ -191,7 +197,7 @@ def load_variables(config_file="config.yaml"):
     return full_prompt
 
 
-def construct_prompt():
+def construct_prompt(config: AIConfig | None = AIConfig.load()):
     """Construct the prompt for the AI to respond to"""
     config = AIConfig.load()
     if False and config.ai_name:
@@ -208,9 +214,9 @@ Continue (y/n): """)
         if should_continue.lower() == "n":
             config = AIConfig()
 
-    if not config.ai_name:
-        config = prompt_user()
-        config.save()
+    # if not config.ai_name:
+    #     config = prompt_user()
+    #     config.save()
 
     # Get rid of this global:
     global ai_name
@@ -228,7 +234,8 @@ def prompt_user():
         "Welcome to Auto-GPT! ",
         Fore.GREEN,
         "Enter the name of your AI and its role below. Entering nothing will load defaults.",
-        speak_text=True)
+        speak_text=True,
+    )
 
     # Get AI Name from User
     logger.typewriter_log(
@@ -249,7 +256,8 @@ def prompt_user():
     logger.typewriter_log(
         "Describe your AI's role: ",
         Fore.GREEN,
-        "For example, 'an AI designed to autonomously develop and run businesses with the sole goal of increasing your net worth.'")
+        "For example, 'an AI designed to autonomously develop and run businesses with the sole goal of increasing your net worth.'",
+    )
     ai_role = utils.clean_input(f"{ai_name} is: ")
     if ai_role == "":
         ai_role = "an AI designed to autonomously develop and run businesses with the sole goal of increasing your net worth."
@@ -258,7 +266,8 @@ def prompt_user():
     logger.typewriter_log(
         "Enter up to 5 goals for your AI: ",
         Fore.GREEN,
-        "For example: \nIncrease net worth, Grow Twitter Account, Develop and manage multiple businesses autonomously'")
+        "For example: \nIncrease net worth, Grow Twitter Account, Develop and manage multiple businesses autonomously'",
+    )
     print("Enter nothing to load defaults, enter nothing when finished.", flush=True)
     ai_goals = []
     for i in range(5):
@@ -267,8 +276,11 @@ def prompt_user():
             break
         ai_goals.append(ai_goal)
     if len(ai_goals) == 0:
-        ai_goals = ["Increase net worth", "Grow Twitter Account",
-                    "Develop and manage multiple businesses autonomously"]
+        ai_goals = [
+            "Increase net worth",
+            "Grow Twitter Account",
+            "Develop and manage multiple businesses autonomously",
+        ]
 
     config = AIConfig(ai_name, ai_role, ai_goals)
     return config
@@ -299,7 +311,8 @@ def parse_arguments():
         logger.typewriter_log(
             "WARNING: ",
             Fore.RED,
-            "Continuous mode is not recommended. It is potentially dangerous and may cause your AI to run forever or carry out actions you would not usually authorise. Use at your own risk.")
+            "Continuous mode is not recommended. It is potentially dangerous and may cause your AI to run forever or carry out actions you would not usually authorise. Use at your own risk.",
+        )
         cfg.set_continuous_mode(True)
 
     if args.speak:
