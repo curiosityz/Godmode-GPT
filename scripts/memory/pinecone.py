@@ -25,6 +25,7 @@ class PineconeMemory(MemoryProviderSingleton):
     def add(self, data):
         vector = get_ada_embedding(data)
         # no metadata here. We may wish to change that long term.
+        print("Using namespace: ", self.namespace)
         resp = self.index.upsert([(str(self.vec_num), vector, {"raw_text": data})], namespace=self.namespace)
         _text = f"Inserting data into memory at index: {self.vec_num}:\n data: {data}"
         self.vec_num += 1
