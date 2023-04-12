@@ -7,6 +7,8 @@ from config import Config
 from ai_config import AIConfig
 import os
 
+from scripts.llm_utils import create_chat_completion
+
 cfg = Config()
 
 START = "###start###"
@@ -65,6 +67,34 @@ def interact_with_ai(
 
     thoughts = print_assistant_thoughts(assistant_reply)
 
+    # speak = thoughts["speak"]
+
+    task = None
+    try:
+        task = create_chat_completion(
+            [
+                chat.create_chat_message(
+                    "system",
+                    "You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2021-09\nCurrent date: 2023-03-26",
+                ),
+                chat.create_chat_message(
+                    "user",
+                    'Describe this action as succinctly as possible in one short sentence:\n\n```\nCOMMAND: browse_website\nARGS: {\n  "url": "https://www.amazon.com/",\n  "question": "What are the current top products in the Smart Home Device category?"\n}\n```',
+                ),
+                chat.create_chat_message(
+                    "assistant", "Find top Smart Home Device products on Amazon.com."
+                ),
+                chat.create_chat_message(
+                    "user",
+                    f"Describe this action as succinctly as possible in one short sentence:\n\n```\nCOMMAND: {command_name}\nARGS: {arguments}\n```",
+                ),
+            ],
+            model="gpt-3.5-turbo",
+            temperature=0.2,
+        )
+    except Exception as e:
+        print(e)
+
     # memory_to_add = f"Assistant Reply: {assistant_reply} " \
     #                 f"\nResult: {result} " \
     #                 f"\nHuman Feedback: {user_input} "
@@ -80,7 +110,15 @@ def interact_with_ai(
     except Exception as e:
         print(e)
 
-    return command_name, arguments, thoughts, message_history, assistant_reply, result
+    return (
+        command_name,
+        arguments,
+        thoughts,
+        message_history,
+        assistant_reply,
+        result,
+        task,
+    )
 
 
 # make an api using flask
@@ -135,6 +173,7 @@ def simple_api():
             message_history,
             assistant_reply,
             result,
+            task,
         ) = interact_with_ai(
             conf,
             memory,
@@ -156,6 +195,7 @@ def simple_api():
             "message_history": message_history,
             "assistant_reply": assistant_reply,
             "result": result,
+            "task": task,
         }
     )
 
