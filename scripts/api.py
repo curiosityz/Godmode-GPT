@@ -143,4 +143,6 @@ def simple_api():
     )
 
 
-app.run(port=os.environ["PORT"] | 5100)
+port = os.environ.get("PORT") or 5100
+
+app.run(port=port)
