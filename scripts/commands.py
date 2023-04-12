@@ -50,10 +50,8 @@ def get_command(response):
         return "Error:", str(e)
 
 
-def execute_command(command_name, arguments):
+def execute_command(command_name, arguments, memory, agent_id):
     """Execute the command and return the result"""
-    memory = get_memory(cfg)
-
     try:
         if command_name == "google":
 
@@ -81,15 +79,15 @@ def execute_command(command_name, arguments):
         elif command_name == "get_hyperlinks":
             return get_hyperlinks(arguments["url"])
         elif command_name == "read_file":
-            return read_file(arguments["file"])
+            return read_file(agent_id, arguments["file"])
         elif command_name == "write_to_file":
-            return write_to_file(arguments["file"], arguments["text"])
+            return write_to_file(agent_id, arguments["file"], arguments["text"])
         elif command_name == "append_to_file":
-            return append_to_file(arguments["file"], arguments["text"])
+            return append_to_file(agent_id, arguments["file"], arguments["text"])
         elif command_name == "delete_file":
-            return delete_file(arguments["file"])
+            return delete_file(agent_id, arguments["file"])
         elif command_name == "search_files":
-            return search_files(arguments["directory"])
+            return search_files(agent_id, arguments["directory"])
         elif command_name == "browse_website":
             return browse_website(arguments["url"], arguments["question"])
         # TODO: Change these to take in a file rather than pasted code, if
