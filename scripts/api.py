@@ -139,6 +139,42 @@ def after_request(response):
     return response
 
 
+@app.route("/api/goal-subgoals", methods=["POST"])
+def simple_api():
+    request_data = request.get_json()
+
+    goal = request_data["goal"]
+    openai_key = request_data.get("openai_key", "")
+
+    # openai.api_key = openai_key
+
+    if openai_key != "" and openai_key is not None:
+        cfg.openai_api_key = openai_key
+
+    subgoals = create_chat_completion(
+        [
+            chat.create_chat_message(
+                "system",
+                "You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2021-09\nCurrent date: 2023-03-26",
+            ),
+            chat.create_chat_message(
+                "user",
+                f'Make a list of 3 subtasks to the overall goal of: "{goal}".\n'
+                + "\n"
+                + "ONLY answer this message with a numbered list of short subtasks. write nothing else. Make sure to make the subtask descriptions as brief as possible.",
+            ),
+        ],
+        model="gpt-3.5-turbo",
+        temperature=0.2,
+    )
+
+    return json.dumps(
+        {
+            "subgoals": subgoals,
+        }
+    )
+
+
 @app.route("/api", methods=["POST"])
 def simple_api():
     request_data = request.get_json()
