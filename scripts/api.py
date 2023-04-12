@@ -11,7 +11,7 @@ cfg = Config()
 
 START = "###start###"
 
-def interact_with_ai(ai_config, memory, command_name, arguments, assistant_reply, message_history=[]):
+def interact_with_ai(ai_config, memory, command_name, arguments, assistant_reply, agent_id, message_history=[]):
     prompt = construct_prompt(ai_config)
     print(prompt)
 
@@ -28,7 +28,7 @@ def interact_with_ai(ai_config, memory, command_name, arguments, assistant_reply
         elif command_name == "human_feedback":
             result = f"Human feedback: {arguments}"
         else:
-            result = f"Command {command_name} returned: {cmd.execute_command(command_name, arguments)}"
+            result = f"Command {command_name} returned: {cmd.execute_command(command_name, arguments, memory, agent_id)}"
 
         # Check if there's a result from the command append it to the message
         # history
@@ -107,7 +107,8 @@ def simple_api():
 
     # openai.api_key = openai_key
 
-    memory = get_memory(cfg, request_data["agent_id"])
+    agent_id = request_data["agent_id"]
+    memory = get_memory(cfg, agent_id)
 
     if openai_key != "" and openai_key is not None:
         cfg.openai_api_key = openai_key
@@ -124,6 +125,7 @@ def simple_api():
             command_name,
             arguments,
             assistant_reply,
+            agent_id,
             message_history,
         )
     except Exception as e:
