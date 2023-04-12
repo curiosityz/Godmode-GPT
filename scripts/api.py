@@ -80,7 +80,7 @@ def interact_with_ai(
     except Exception as e:
         print(e)
 
-    return command_name, arguments, thoughts, message_history, assistant_reply
+    return command_name, arguments, thoughts, message_history, assistant_reply, result
 
 
 # make an api using flask
@@ -134,6 +134,7 @@ def simple_api():
             thoughts,
             message_history,
             assistant_reply,
+            result,
         ) = interact_with_ai(
             conf,
             memory,
@@ -154,6 +155,7 @@ def simple_api():
             "thoughts": thoughts,
             "message_history": message_history,
             "assistant_reply": assistant_reply,
+            "result": result,
         }
     )
 
