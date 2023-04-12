@@ -12,14 +12,14 @@ except ImportError:
     PineconeMemory = None
 
 
-def get_memory(cfg, init=False):
+def get_memory(cfg, id=None, init=False):
     memory = None
     if cfg.memory_backend == "pinecone":
         if not PineconeMemory:
             print("Error: Pinecone is not installed. Please install pinecone"
                   " to use Pinecone as a memory backend.")
         else:
-            memory = PineconeMemory(cfg)
+            memory = PineconeMemory(cfg, id)
             if init:
                 memory.clear()
     elif cfg.memory_backend == "redis":

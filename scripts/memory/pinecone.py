@@ -5,10 +5,10 @@ from memory.base import MemoryProviderSingleton, get_ada_embedding
 
 
 class PineconeMemory(MemoryProviderSingleton):
-    def __init__(self, cfg):
+    def __init__(self, cfg, id = None):
         pinecone_api_key = cfg.pinecone_api_key
         pinecone_region = cfg.pinecone_region
-        self.namespace = cfg.pinecone_namespace
+        self.namespace = id
         pinecone.init(api_key=pinecone_api_key, environment=pinecone_region)
         dimension = 1536
         metric = "cosine"
@@ -25,7 +25,6 @@ class PineconeMemory(MemoryProviderSingleton):
     def add(self, data):
         vector = get_ada_embedding(data)
         # no metadata here. We may wish to change that long term.
-        print("Using namespace: ", self.namespace)
         resp = self.index.upsert([(str(self.vec_num), vector, {"raw_text": data})], namespace=self.namespace)
         _text = f"Inserting data into memory at index: {self.vec_num}:\n data: {data}"
         self.vec_num += 1
