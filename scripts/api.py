@@ -113,10 +113,12 @@ def simple_api():
     arguments = request_data["arguments"]
     openai_key = request_data["openai_key"]
     
-    openai.api_key = openai_key
+    # openai.api_key = openai_key
     
     memory = get_memory(cfg)
-    cfg.openai_api_key = openai_key
+    
+    if openai_key != "" and openai_key is not None:
+        cfg.openai_api_key = openai_key
 
     try:
         command_name, arguments, assistant_reply, output = interact_with_ai(memory, command_name, arguments)
