@@ -139,7 +139,7 @@ def after_request(response):
     return response
 
 
-@app.route("/api/goal-subgoals", methods=["POST"])
+@app.route("/api-goal-subgoals", methods=["POST"])
 def simple_api():
     request_data = request.get_json()
 
