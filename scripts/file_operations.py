@@ -10,7 +10,7 @@ def read_file(agent_id, filename):
     """Read a file and return the contents"""
     try:
         content = (
-            collection.document(agent_id + "/" + filename).get().to_dict()["content"]
+            collection.document("files" + "/" + agent_id + "/" + filename).get().to_dict()["content"]
         )
         return content
     except Exception as e:
