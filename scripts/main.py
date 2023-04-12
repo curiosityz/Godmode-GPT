@@ -197,7 +197,7 @@ def load_variables(config_file="config.yaml"):
     return full_prompt
 
 
-def construct_prompt(config: AIConfig | None = AIConfig.load()):
+def construct_prompt(config: AIConfig = AIConfig.load()):
     """Construct the prompt for the AI to respond to"""
     config = AIConfig.load()
     if False and config.ai_name:
