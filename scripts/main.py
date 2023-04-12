@@ -60,16 +60,17 @@ def print_to_console(
         logger.info(title + ": " + content)
         if isinstance(content, list):
             content = " ".join(content)
-        words = content.split()
-        for i, word in enumerate(words):
-            print(word, end="", flush=True)
-            if i < len(words) - 1:
-                print(" ", end="", flush=True)
-            typing_speed = random.uniform(min_typing_speed, max_typing_speed)
-            time.sleep(typing_speed)
-            # type faster after each word
-            min_typing_speed = min_typing_speed * 0.95
-            max_typing_speed = max_typing_speed * 0.95
+        print(content)
+        # words = content.split()
+        # for i, word in enumerate(words):
+        #     print(word, end="", flush=True)
+        #     if i < len(words) - 1:
+        #         print(" ", end="", flush=True)
+        #     typing_speed = random.uniform(min_typing_speed, max_typing_speed)
+        #     time.sleep(typing_speed)
+        #     # type faster after each word
+        #     min_typing_speed = min_typing_speed * 0.95
+        #     max_typing_speed = max_typing_speed * 0.95
     print()
 
 
