@@ -83,7 +83,7 @@ def interact_with_ai(ai_config, memory, command_name, arguments, assistant_reply
     except Exception as e:
         print(e)
 
-    return command_name, arguments, thoughts, output, assistant_reply
+    return command_name, arguments, thoughts, message_history, assistant_reply
 
 
 # make an api using flask
@@ -119,7 +119,7 @@ def simple_api():
 
     # openai.api_key = openai_key
 
-    memory = get_memory(cfg, request_data["agent_id"], init=True)
+    memory = get_memory(cfg, request_data["agent_id"])
 
     if openai_key != "" and openai_key is not None:
         cfg.openai_api_key = openai_key
@@ -130,7 +130,7 @@ def simple_api():
         ai_goals=ai_goals,
     )
     try:
-        command_name, arguments, thoughts, output, assistant_reply = interact_with_ai(
+        command_name, arguments, thoughts, message_history, assistant_reply = interact_with_ai(
             conf,
             memory,
             command_name,
@@ -140,13 +140,14 @@ def simple_api():
         )
     except Exception as e:
         print(e)
+        raise e
 
     return json.dumps(
         {
             "command": command_name,
             "arguments": arguments,
             "thoughts": thoughts,
-            "output": output,
+            "message_history": message_history,
             "assistant_reply": assistant_reply,
         }
     )
