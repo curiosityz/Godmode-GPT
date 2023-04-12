@@ -28,14 +28,18 @@ START = "###start###"
 
 assistant_reply = ""
 
-def interact_with_ai(memory, command_name, arguments):
-    global assistant_reply
-    prompt = construct_prompt()
 
-    user_input = arguments if command_name == "human_feedback" else "GENERATE NEXT COMMAND JSON"
+def interact_with_ai(ai_config, memory, command_name, arguments):
+    global assistant_reply
+
+    prompt = construct_prompt(ai_config)
+
+    user_input = (
+        arguments if command_name == "human_feedback" else "GENERATE NEXT COMMAND JSON"
+    )
     output = None
     result = None
-    
+
     if command_name != START:
         # Execute command
         if command_name.lower().startswith("error"):
@@ -50,27 +54,25 @@ def interact_with_ai(memory, command_name, arguments):
         if result is not None:
             output = chat.create_chat_message("system", result)
         else:
-            output = chat.create_chat_message(
-                    "system", "Unable to execute command")
+            output = chat.create_chat_message("system", "Unable to execute command")
 
         full_message_history.append(output)
     else:
         user_input = "Determine which next command to use, and respond using the format specified above:"
 
-    memory_to_add = f"Assistant Reply: {assistant_reply} " \
-                    f"\nResult: {result} " \
-                    f"\nHuman Feedback: {user_input} "
+    memory_to_add = (
+        f"Assistant Reply: {assistant_reply} "
+        f"\nResult: {result} "
+        f"\nHuman Feedback: {user_input} "
+    )
 
     memory.add(memory_to_add)
 
     # Send message to AI, get response
     assistant_reply = chat.chat_with_ai(
-        prompt,
-        user_input,
-        full_message_history,
-        memory,
-        4000)
-    
+        prompt, user_input, full_message_history, memory, 4000
+    )
+
     thoughts = print_assistant_thoughts(assistant_reply)
 
     # memory_to_add = f"Assistant Reply: {assistant_reply} " \
@@ -90,46 +92,66 @@ def interact_with_ai(memory, command_name, arguments):
 
     return command_name, arguments, thoughts, output
 
+
 # make an api using flask
 
 from flask import Flask, request
+
 app = Flask(__name__)
+
 
 @app.after_request
 def after_request(response):
-    white_origin= ['http://localhost:3000']
+    white_origin = ["http://localhost:3000"]
     # if request.headers['Origin'] in white_origin:
     if True:
-        response.headers['Access-Control-Allow-Origin'] = request.headers['Origin'] 
-        response.headers['Access-Control-Allow-Methods'] = 'PUT,GET,POST,DELETE'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+        response.headers["Access-Control-Allow-Origin"] = request.headers["Origin"]
+        response.headers["Access-Control-Allow-Methods"] = "PUT,GET,POST,DELETE"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
     return response
 
-@app.route("/api", methods=['POST'])
+
+@app.route("/api", methods=["POST"])
 def simple_api():
     request_data = request.get_json()
 
     command_name = request_data["command"]
     arguments = request_data["arguments"]
     openai_key = request_data["openai_key"]
-    
+    ai_name = request_data["ai_name"]
+    ai_description = request_data["ai_description"]
+    ai_goals = request_data["ai_goals"]
+
     # openai.api_key = openai_key
-    
+
     memory = get_memory(cfg)
-    
+
     if openai_key != "" and openai_key is not None:
         cfg.openai_api_key = openai_key
 
+    conf = AIConfig(
+        ai_name=ai_name,
+        ai_description=ai_description,
+        ai_goals=ai_goals,
+    )
     try:
-        command_name, arguments, assistant_reply, output = interact_with_ai(memory, command_name, arguments)
+        command_name, arguments, assistant_reply, output = interact_with_ai(
+            conf,
+            memory,
+            command_name,
+            arguments,
+        )
     except Exception as e:
         print(e)
 
-    return json.dumps({
-        "command": command_name,
-        "arguments": arguments,
-        "assistant_reply": assistant_reply,
-        "output": output
-    })
+    return json.dumps(
+        {
+            "command": command_name,
+            "arguments": arguments,
+            "assistant_reply": assistant_reply,
+            "output": output,
+        }
+    )
+
 
 app.run(port=5000)
