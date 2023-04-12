@@ -26,12 +26,7 @@ full_message_history = []
 
 START = "###start###"
 
-assistant_reply = ""
-
-
-def interact_with_ai(ai_config, memory, command_name, arguments):
-    global assistant_reply
-
+def interact_with_ai(ai_config, memory, command_name, arguments, assistant_reply):
     prompt = construct_prompt(ai_config)
 
     user_input = (
@@ -90,7 +85,7 @@ def interact_with_ai(ai_config, memory, command_name, arguments):
     except Exception as e:
         print(e)
 
-    return command_name, arguments, thoughts, output
+    return command_name, arguments, thoughts, output, assistant_reply
 
 
 # make an api using flask
@@ -117,6 +112,7 @@ def simple_api():
 
     command_name = request_data["command"]
     arguments = request_data["arguments"]
+    assistant_reply = request_data.get("assistant_reply", "")
     openai_key = request_data.get("openai_key", None)
     ai_name = request_data["ai_name"]
     ai_description = request_data["ai_description"]
@@ -136,11 +132,12 @@ def simple_api():
         ai_goals=ai_goals,
     )
     try:
-        command_name, arguments, assistant_reply, output = interact_with_ai(
+        command_name, arguments, thoughts, output, assistant_reply = interact_with_ai(
             conf,
             memory,
             command_name,
             arguments,
+            assistant_reply,
         )
     except Exception as e:
         print(e)
@@ -149,8 +146,9 @@ def simple_api():
         {
             "command": command_name,
             "arguments": arguments,
-            "assistant_reply": assistant_reply,
+            "thoughts": thoughts,
             "output": output,
+            "assistant_reply": assistant_reply,
         }
     )
 
