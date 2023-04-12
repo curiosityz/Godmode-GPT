@@ -22,11 +22,9 @@ import logging
 
 cfg = Config()
 
-full_message_history = []
-
 START = "###start###"
 
-def interact_with_ai(ai_config, memory, command_name, arguments, assistant_reply):
+def interact_with_ai(ai_config, memory, command_name, arguments, assistant_reply, message_history=[]):
     prompt = construct_prompt(ai_config)
 
     user_input = (
@@ -51,7 +49,7 @@ def interact_with_ai(ai_config, memory, command_name, arguments, assistant_reply
         else:
             output = chat.create_chat_message("system", "Unable to execute command")
 
-        full_message_history.append(output)
+        message_history.append(output)
     else:
         user_input = "Determine which next command to use, and respond using the format specified above:"
 
@@ -65,7 +63,7 @@ def interact_with_ai(ai_config, memory, command_name, arguments, assistant_reply
 
     # Send message to AI, get response
     assistant_reply = chat.chat_with_ai(
-        prompt, user_input, full_message_history, memory, 4000
+        prompt, user_input, message_history, memory, 4000
     )
 
     thoughts = print_assistant_thoughts(assistant_reply)
@@ -117,10 +115,10 @@ def simple_api():
     ai_name = request_data["ai_name"]
     ai_description = request_data["ai_description"]
     ai_goals = request_data["ai_goals"]
+    message_history = request_data.get("message_history", [])
 
     # openai.api_key = openai_key
 
-    print("Hello")
     memory = get_memory(cfg, request_data["agent_id"], init=True)
 
     if openai_key != "" and openai_key is not None:
@@ -138,6 +136,7 @@ def simple_api():
             command_name,
             arguments,
             assistant_reply,
+            message_history,
         )
     except Exception as e:
         print(e)
