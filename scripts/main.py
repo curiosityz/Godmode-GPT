@@ -94,6 +94,7 @@ def print_assistant_thoughts(assistant_reply):
         assistant_thoughts_plan = None
         assistant_thoughts_speak = None
         assistant_thoughts_criticism = None
+        assistant_thoughts_relevant_goal = None
         assistant_thoughts = assistant_reply_json.get("thoughts", {})
         assistant_thoughts_text = assistant_thoughts.get("text")
 
@@ -102,6 +103,7 @@ def print_assistant_thoughts(assistant_reply):
             assistant_thoughts_plan = assistant_thoughts.get("plan")
             assistant_thoughts_criticism = assistant_thoughts.get("criticism")
             assistant_thoughts_speak = assistant_thoughts.get("speak")
+            assistant_thoughts_relevant_goal = assistant_thoughts.get("relevant_goal")
 
         print_to_console(
             f"{ai_name.upper()} THOUGHTS:", Fore.YELLOW, assistant_thoughts_text
@@ -133,6 +135,7 @@ def print_assistant_thoughts(assistant_reply):
             "plan": assistant_thoughts_plan,
             "criticism": assistant_thoughts_criticism,
             "speak": assistant_thoughts_speak,
+            "relevant_goal": assistant_thoughts_relevant_goal,
         }
 
     except json.decoder.JSONDecodeError:
