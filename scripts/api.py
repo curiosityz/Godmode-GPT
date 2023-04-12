@@ -11,7 +11,16 @@ cfg = Config()
 
 START = "###start###"
 
-def interact_with_ai(ai_config, memory, command_name, arguments, assistant_reply, agent_id, message_history=[]):
+
+def interact_with_ai(
+    ai_config,
+    memory,
+    command_name,
+    arguments,
+    assistant_reply,
+    agent_id,
+    message_history=[],
+):
     prompt = construct_prompt(ai_config)
     print(prompt)
 
@@ -119,7 +128,13 @@ def simple_api():
         ai_goals=ai_goals,
     )
     try:
-        command_name, arguments, thoughts, message_history, assistant_reply = interact_with_ai(
+        (
+            command_name,
+            arguments,
+            thoughts,
+            message_history,
+            assistant_reply,
+        ) = interact_with_ai(
             conf,
             memory,
             command_name,
@@ -144,6 +159,7 @@ def simple_api():
 
 
 port = os.environ.get("PORT") or 5100
+host = os.environ.get("HOST") or None
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True, port=port, host=host)
