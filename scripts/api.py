@@ -1,24 +1,11 @@
 import json
-import random
-
-import openai
 import commands as cmd
 from main import construct_prompt, print_assistant_thoughts
-import utils
 from memory import get_memory
-import data
 import chat
-from colorama import Fore, Style
-from spinner import Spinner
-import time
-import speak
 from config import Config
-from json_parser import fix_and_parse_json
 from ai_config import AIConfig
-import traceback
-import yaml
-import argparse
-import logging
+import os
 
 cfg = Config()
 
@@ -26,6 +13,7 @@ START = "###start###"
 
 def interact_with_ai(ai_config, memory, command_name, arguments, assistant_reply, message_history=[]):
     prompt = construct_prompt(ai_config)
+    print(prompt)
 
     user_input = (
         arguments if command_name == "human_feedback" else "GENERATE NEXT COMMAND JSON"
@@ -153,4 +141,4 @@ def simple_api():
     )
 
 
-app.run(port=5100)
+app.run(port=os.environ["PORT"] | 5100)
