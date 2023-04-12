@@ -117,7 +117,7 @@ def simple_api():
 
     command_name = request_data["command"]
     arguments = request_data["arguments"]
-    openai_key = request_data["openai_key"]
+    openai_key = request_data.get("openai_key", None)
     ai_name = request_data["ai_name"]
     ai_description = request_data["ai_description"]
     ai_goals = request_data["ai_goals"]
