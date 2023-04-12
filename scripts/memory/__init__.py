@@ -28,8 +28,8 @@ def get_memory(cfg, id=None, init=False):
                   " to use Pinecone as a memory backend.")
         else:
             memory = PineconeMemory(cfg, id)
-            if init:
-                memory.clear()
+            # if init:
+                # memory.clear()
     elif cfg.memory_backend == "redis":
         if not RedisMemory:
             print("Error: Redis is not installed. Please install redis-py to"
