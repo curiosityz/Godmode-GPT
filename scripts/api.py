@@ -145,4 +145,5 @@ def simple_api():
 
 port = os.environ.get("PORT") or 5100
 
-app.run(port=port)
+if __name__ == '__main__':
+    app.run(debug=True)

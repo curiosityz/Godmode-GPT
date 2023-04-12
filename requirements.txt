@@ -16,3 +16,4 @@ redis
 orjson
 Pillow
 google-cloud-firestore
+flask
