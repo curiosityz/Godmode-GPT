@@ -162,4 +162,5 @@ port = os.environ.get("PORT") or 5100
 host = os.environ.get("HOST") or None
 
 if __name__ == "__main__":
+    print("Starting API on port", port, "and host", host)
     app.run(debug=True, port=port, host=host)
