@@ -7,7 +7,7 @@ from config import Config
 from ai_config import AIConfig
 import os
 
-from scripts.llm_utils import create_chat_completion
+from llm_utils import create_chat_completion
 
 cfg = Config()
 
@@ -69,6 +69,21 @@ def interact_with_ai(
 
     # speak = thoughts["speak"]
 
+    # memory_to_add = f"Assistant Reply: {assistant_reply} " \
+    #                 f"\nResult: {result} " \
+    #                 f"\nHuman Feedback: {user_input} "
+
+    # memory (pinecone or whatever it called or just local files)
+    # full message hist (amazon smth)
+    # user input (nothing)
+    # prompt (nothing)
+
+    # Get command name and arguments
+    try:
+        command_name, arguments = cmd.get_command(assistant_reply)
+    except Exception as e:
+        print(e)
+
     task = None
     try:
         task = create_chat_completion(
@@ -92,21 +107,6 @@ def interact_with_ai(
             model="gpt-3.5-turbo",
             temperature=0.2,
         )
-    except Exception as e:
-        print(e)
-
-    # memory_to_add = f"Assistant Reply: {assistant_reply} " \
-    #                 f"\nResult: {result} " \
-    #                 f"\nHuman Feedback: {user_input} "
-
-    # memory (pinecone or whatever it called or just local files)
-    # full message hist (amazon smth)
-    # user input (nothing)
-    # prompt (nothing)
-
-    # Get command name and arguments
-    try:
-        command_name, arguments = cmd.get_command(assistant_reply)
     except Exception as e:
         print(e)
 
