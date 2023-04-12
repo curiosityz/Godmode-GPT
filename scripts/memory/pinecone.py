@@ -34,7 +34,7 @@ class PineconeMemory(MemoryProviderSingleton):
         return self.get_relevant(data, 1)
 
     def clear(self):
-        self.index.delete(deleteAll=True)
+        self.index.delete(deleteAll=True, namespace=self.namespace)
         return "Obliviated"
 
     def get_relevant(self, data, num_relevant=5):
