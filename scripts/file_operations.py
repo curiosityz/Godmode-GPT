@@ -20,7 +20,8 @@ def read_file(agent_id, filename):
 def write_to_file(agent_id, filename, text):
     """Write text to a file"""
     try:
-        collection.document(agent_id + "/" + filename).set(
+        print(agent_id, filename, text)
+        collection.document("files" + "/" + agent_id + "/" + filename).set(
             {"content": text, "agent_id": agent_id}
         )
         return "File written to successfully."
@@ -32,7 +33,7 @@ def append_to_file(agent_id, filename, text):
     """Append text to a file"""
     try:
         content = (
-            collection.document(agent_id + "/" + filename).get().to_dict()["content"]
+            collection.document("files" + "/" + agent_id + "/" + filename).get().to_dict()["content"]
         )
         collection.document(filename).set(
             {"content": content + "\n" + text, "agent_id": agent_id}
@@ -45,7 +46,7 @@ def append_to_file(agent_id, filename, text):
 def delete_file(agent_id, filename):
     """Delete a file"""
     try:
-        collection.document(agent_id + "/" + filename).delete()
+        collection.document("files" + "/" + agent_id + "/" + filename).delete()
         return "File deleted successfully."
     except Exception as e:
         return "Error: " + str(e)
