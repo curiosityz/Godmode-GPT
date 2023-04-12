@@ -23,7 +23,7 @@ class Singleton(abc.ABCMeta, type):
         return cls._instances[cls]
 
 
-class AbstractSingleton(abc.ABC, metaclass=Singleton):
+class AbstractSingleton(abc.ABC):
     pass
 
 

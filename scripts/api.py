@@ -120,8 +120,8 @@ def simple_api():
 
     # openai.api_key = openai_key
 
-    cfg.pinecone_namespace = request_data["agent_id"]
-    memory = get_memory(cfg, init=True)
+    print("Hello")
+    memory = get_memory(cfg, request_data["agent_id"], init=True)
 
     if openai_key != "" and openai_key is not None:
         cfg.openai_api_key = openai_key
@@ -153,4 +153,4 @@ def simple_api():
     )
 
 
-app.run(port=5000)
+app.run(port=5100)
