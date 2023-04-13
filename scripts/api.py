@@ -154,6 +154,11 @@ def after_request(response):
     return response
 
 
+@app.route("/health", methods=["GET"])
+def health():
+    return "OK"
+
+
 @app.route("/api-goal-subgoals", methods=["POST"])
 def subgoals():
     request_data = request.get_json()
