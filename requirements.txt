@@ -21,3 +21,4 @@ numpy
 google-cloud-firestore
 flask
 google-cloud-storage
+gunicorn
