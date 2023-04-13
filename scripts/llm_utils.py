@@ -26,6 +26,6 @@ def create_chat_completion(messages, model=None, temperature=cfg.temperature, ma
             max_tokens=max_tokens
         )
 
-    print(f"CHAT COMPLETION TOOK {time.time() - starttime} SECONDS")
+    print(f"CHAT COMPLETION TOOK {time.time() - starttime} SECONDS", model)
 
     return response.choices[0].message["content"]
