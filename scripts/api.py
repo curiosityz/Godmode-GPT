@@ -1,4 +1,5 @@
 import json
+import time
 import commands as cmd
 from main import construct_prompt, print_assistant_thoughts
 from memory import get_memory
@@ -125,7 +126,22 @@ def interact_with_ai(
 
 from flask import Flask, request
 
+
+class LogRequestDurationMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        request_start_time = time.time()
+        response = self.app(environ, start_response)
+        request_duration = time.time() - request_start_time
+        app.logger.info(f"Request duration: {request_duration}")
+        return response
+
+
 app = Flask(__name__)
+
+app.wsgi_app = LogRequestDurationMiddleware(app.wsgi_app)
 
 
 @app.after_request
