@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.11-slim-bullseye
 
 WORKDIR /app
 COPY scripts/ /app
@@ -11,5 +11,4 @@ EXPOSE 8080
 ENV PORT 8080
 ENV HOST 0.0.0.0
 
-# Run app.py when the container launches
-CMD ["python", "api.py"]
+CMD ["gunicorn"  , "-b", "0.0.0.0:8080", "--timeout", "800", "api:app"]
