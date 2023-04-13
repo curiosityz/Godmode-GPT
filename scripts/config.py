@@ -37,8 +37,8 @@ class Config(metaclass=Singleton):
         self.continuous_mode = False
         self.speak_mode = False
 
-        self.fast_llm_model = os.getenv("FAST_LLM_MODEL", "gpt-3.5-turbo")
-        self.smart_llm_model = os.getenv("SMART_LLM_MODEL", "gpt-4")
+        self.fast_llm_model = "gpt-3.5-turbo"
+        self.smart_llm_model = "gpt-3.5-turbo"
         self.fast_token_limit = int(os.getenv("FAST_TOKEN_LIMIT", 4000))
         self.smart_token_limit = int(os.getenv("SMART_TOKEN_LIMIT", 8000))
 
