@@ -25,7 +25,7 @@ def interact_with_ai(
     message_history=[],
 ):
     prompt = construct_prompt(ai_config)
-    print(prompt)
+    #print(prompt)
 
     user_input = (
         arguments if command_name == "human_feedback" else "GENERATE NEXT COMMAND JSON"
