@@ -14,7 +14,7 @@ from json_parser import fix_and_parse_json
 from ai_config import AIConfig
 import traceback
 import yaml
-import argparse
+# import argparse
 from logger import logger
 import logging
 
@@ -291,57 +291,57 @@ def prompt_user():
 
 def parse_arguments():
     """Parses the arguments passed to the script"""
-    global cfg
-    cfg.set_debug_mode(False)
-    cfg.set_continuous_mode(False)
-    cfg.set_speak_mode(False)
+    # global cfg
+    # cfg.set_debug_mode(False)
+    # cfg.set_continuous_mode(False)
+    # cfg.set_speak_mode(False)
 
-    parser = argparse.ArgumentParser(description='Process arguments.')
-    parser.add_argument('--continuous', action='store_true', help='Enable Continuous Mode')
-    parser.add_argument('--speak', action='store_true', help='Enable Speak Mode')
-    parser.add_argument('--debug', action='store_true', help='Enable Debug Mode')
-    parser.add_argument('--gpt3only', action='store_true', help='Enable GPT3.5 Only Mode')
-    parser.add_argument('--gpt4only', action='store_true', help='Enable GPT4 Only Mode')
-    parser.add_argument('--use-memory', '-m', dest="memory_type", help='Defines which Memory backend to use')
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser(description='Process arguments.')
+    # parser.add_argument('--continuous', action='store_true', help='Enable Continuous Mode')
+    # parser.add_argument('--speak', action='store_true', help='Enable Speak Mode')
+    # parser.add_argument('--debug', action='store_true', help='Enable Debug Mode')
+    # parser.add_argument('--gpt3only', action='store_true', help='Enable GPT3.5 Only Mode')
+    # parser.add_argument('--gpt4only', action='store_true', help='Enable GPT4 Only Mode')
+    # parser.add_argument('--use-memory', '-m', dest="memory_type", help='Defines which Memory backend to use')
+    # args = parser.parse_args()
 
-    if args.debug:
-        logger.typewriter_log("Debug Mode: ", Fore.GREEN, "ENABLED")
-        cfg.set_debug_mode(True)
+    # if args.debug:
+    #     logger.typewriter_log("Debug Mode: ", Fore.GREEN, "ENABLED")
+    #     cfg.set_debug_mode(True)
 
-    if args.continuous:
-        logger.typewriter_log("Continuous Mode: ", Fore.RED, "ENABLED")
-        logger.typewriter_log(
-            "WARNING: ",
-            Fore.RED,
-            "Continuous mode is not recommended. It is potentially dangerous and may cause your AI to run forever or carry out actions you would not usually authorise. Use at your own risk.",
-        )
-        cfg.set_continuous_mode(True)
+    # if args.continuous:
+    #     logger.typewriter_log("Continuous Mode: ", Fore.RED, "ENABLED")
+    #     logger.typewriter_log(
+    #         "WARNING: ",
+    #         Fore.RED,
+    #         "Continuous mode is not recommended. It is potentially dangerous and may cause your AI to run forever or carry out actions you would not usually authorise. Use at your own risk.",
+    #     )
+    #     cfg.set_continuous_mode(True)
 
-    if args.speak:
-        logger.typewriter_log("Speak Mode: ", Fore.GREEN, "ENABLED")
-        cfg.set_speak_mode(True)
+    # if args.speak:
+    #     logger.typewriter_log("Speak Mode: ", Fore.GREEN, "ENABLED")
+    #     cfg.set_speak_mode(True)
 
-    if args.gpt3only:
-        logger.typewriter_log("GPT3.5 Only Mode: ", Fore.GREEN, "ENABLED")
-        cfg.set_smart_llm_model(cfg.fast_llm_model)
+    # if args.gpt3only:
+    #     logger.typewriter_log("GPT3.5 Only Mode: ", Fore.GREEN, "ENABLED")
+    #     cfg.set_smart_llm_model(cfg.fast_llm_model)
 
-    if args.gpt4only:
-        logger.typewriter_log("GPT4 Only Mode: ", Fore.GREEN, "ENABLED")
-        cfg.set_fast_llm_model(cfg.smart_llm_model)
+    # if args.gpt4only:
+    #     logger.typewriter_log("GPT4 Only Mode: ", Fore.GREEN, "ENABLED")
+    #     cfg.set_fast_llm_model(cfg.smart_llm_model)
 
-    if args.debug:
-        logger.typewriter_log("Debug Mode: ", Fore.GREEN, "ENABLED")
-        cfg.set_debug_mode(True)
+    # if args.debug:
+    #     logger.typewriter_log("Debug Mode: ", Fore.GREEN, "ENABLED")
+    #     cfg.set_debug_mode(True)
 
-    if args.memory_type:
-        supported_memory = get_supported_memory_backends()
-        chosen = args.memory_type
-        if not chosen in supported_memory:
-            logger.typewriter_log("ONLY THE FOLLOWING MEMORY BACKENDS ARE SUPPORTED: ", Fore.RED, f'{supported_memory}')
-            logger.typewriter_log(f"Defaulting to: ", Fore.YELLOW, cfg.memory_backend)
-        else:
-            cfg.memory_backend = chosen
+    # if args.memory_type:
+    #     supported_memory = get_supported_memory_backends()
+    #     chosen = args.memory_type
+    #     if not chosen in supported_memory:
+    #         logger.typewriter_log("ONLY THE FOLLOWING MEMORY BACKENDS ARE SUPPORTED: ", Fore.RED, f'{supported_memory}')
+    #         logger.typewriter_log(f"Defaulting to: ", Fore.YELLOW, cfg.memory_backend)
+    #     else:
+    #         cfg.memory_backend = chosen
 
 
 def main():
