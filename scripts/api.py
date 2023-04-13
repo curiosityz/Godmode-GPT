@@ -176,7 +176,7 @@ def subgoals():
                 "user",
                 f'Make a list of 3 subtasks to the overall goal of: "{goal}".\n'
                 + "\n"
-                + "ONLY answer this message with a numbered list of short subtasks. write nothing else. Make sure to make the subtask descriptions as brief as possible.",
+                + "ONLY answer this message with a numbered list of short, standalone subtasks. write nothing else. Make sure to make the subtask descriptions as brief as possible.",
             ),
         ],
         model="gpt-3.5-turbo",
