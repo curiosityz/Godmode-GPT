@@ -197,31 +197,31 @@ def subgoals():
 
 @app.route("/api", methods=["POST"])
 def simple_api():
-    request_data = request.get_json()
-
-    command_name = request_data["command"]
-    arguments = request_data["arguments"]
-    assistant_reply = request_data.get("assistant_reply", "")
-    openai_key = request_data.get("openai_key", None)
-    ai_name = request_data["ai_name"]
-    ai_description = request_data["ai_description"]
-    ai_goals = request_data["ai_goals"]
-    message_history = request_data.get("message_history", [])
-
-    # openai.api_key = openai_key
-
-    agent_id = request_data["agent_id"]
-    memory = get_memory(cfg, agent_id)
-
-    if openai_key != "" and openai_key is not None:
-        cfg.openai_api_key = openai_key
-
-    conf = AIConfig(
-        ai_name=ai_name,
-        ai_role=ai_description,
-        ai_goals=ai_goals,
-    )
     try:
+        request_data = request.get_json()
+
+        command_name = request_data["command"]
+        arguments = request_data["arguments"]
+        assistant_reply = request_data.get("assistant_reply", "")
+        openai_key = request_data.get("openai_key", None)
+        ai_name = request_data["ai_name"]
+        ai_description = request_data["ai_description"]
+        ai_goals = request_data["ai_goals"]
+        message_history = request_data.get("message_history", [])
+
+        # openai.api_key = openai_key
+
+        agent_id = request_data["agent_id"]
+        memory = get_memory(cfg, agent_id)
+
+        if openai_key != "" and openai_key is not None:
+            cfg.openai_api_key = openai_key
+
+        conf = AIConfig(
+            ai_name=ai_name,
+            ai_role=ai_description,
+            ai_goals=ai_goals,
+        )
         (
             command_name,
             arguments,
