@@ -1,5 +1,6 @@
 import json
 import random
+from typing import Tuple
 import commands as cmd
 import utils
 from memory import get_memory
@@ -14,6 +15,7 @@ from json_parser import fix_and_parse_json
 from ai_config import AIConfig
 import traceback
 import yaml
+
 # import argparse
 import logging
 
@@ -43,6 +45,7 @@ def check_openai_api_key():
 
 
 def print_to_console(
+    a,
     title,
     title_color,
     content,
@@ -51,12 +54,12 @@ def print_to_console(
     max_typing_speed=0.01,
 ):
     """Prints text to the console with a typing effect"""
-    return # todo: logging
+    a += title_color + title + " " + Style.RESET_ALL + "\n"
+    return  # todo: logging
     global cfg
     global logger
     if speak_text and cfg.speak_mode:
         speak.say_text(f"{title}. {content}")
-    print(title_color + title + " " + Style.RESET_ALL, end="")
     if content:
         logger.info(title + ": " + content)
         if isinstance(content, list):
@@ -75,10 +78,11 @@ def print_to_console(
     print()
 
 
-def print_assistant_thoughts(assistant_reply):
+def print_assistant_thoughts(assistant_reply) -> Tuple[str, str]:
     """Prints the assistant's thoughts to the console"""
     global ai_name
     global cfg
+    godmode_log = ""
     try:
         # Parse and print Assistant response
         assistant_reply_json = fix_and_parse_json(assistant_reply)
@@ -88,7 +92,9 @@ def print_assistant_thoughts(assistant_reply):
             try:
                 assistant_reply_json = json.loads(assistant_reply_json)
             except json.JSONDecodeError as e:
-                print_to_console("Error: Invalid JSON\n", Fore.RED, assistant_reply)
+                godmode_log = print_to_console(
+                    godmode_log, "Error: Invalid JSON\n", Fore.RED, assistant_reply
+                )
                 assistant_reply_json = {}
 
         assistant_thoughts_reasoning = None
@@ -106,13 +112,13 @@ def print_assistant_thoughts(assistant_reply):
             assistant_thoughts_speak = assistant_thoughts.get("speak")
             assistant_thoughts_relevant_goal = assistant_thoughts.get("relevant_goal")
 
-        print_to_console(
-            f"{ai_name.upper()} THOUGHTS:", Fore.YELLOW, assistant_thoughts_text
+        godmode_log = print_to_console(
+            godmode_log, f"{ai_name.upper()} THOUGHTS:", Fore.YELLOW, assistant_thoughts_text
         )
-        print_to_console("REASONING:", Fore.YELLOW, assistant_thoughts_reasoning)
+        godmode_log = print_to_console(godmode_log, "REASONING:", Fore.YELLOW, assistant_thoughts_reasoning)
 
         if assistant_thoughts_plan:
-            print_to_console("PLAN:", Fore.YELLOW, "")
+            godmode_log = print_to_console(godmode_log, "PLAN:", Fore.YELLOW, "")
             # If it's a list, join it into a string
             if isinstance(assistant_thoughts_plan, list):
                 assistant_thoughts_plan = "\n".join(assistant_thoughts_plan)
@@ -123,14 +129,14 @@ def print_assistant_thoughts(assistant_reply):
             lines = assistant_thoughts_plan.split("\n")
             for line in lines:
                 line = line.lstrip("- ")
-                print_to_console("- ", Fore.GREEN, line.strip())
+                godmode_log = print_to_console(godmode_log, "- ", Fore.GREEN, line.strip())
 
-        print_to_console("CRITICISM:", Fore.YELLOW, assistant_thoughts_criticism)
+        godmode_log = print_to_console(godmode_log, "CRITICISM:", Fore.YELLOW, assistant_thoughts_criticism)
         # Speak the assistant's thoughts
         if cfg.speak_mode and assistant_thoughts_speak:
             speak.say_text(assistant_thoughts_speak)
 
-        return {
+        return godmode_log, {
             "thoughts": assistant_thoughts_text,
             "reasoning": assistant_thoughts_reasoning,
             "plan": assistant_thoughts_plan,
@@ -140,12 +146,14 @@ def print_assistant_thoughts(assistant_reply):
         }
 
     except json.decoder.JSONDecodeError:
-        print_to_console("Error: Invalid JSON\n", Fore.RED, assistant_reply)
+        godmode_log = print_to_console(godmode_log, "Error: Invalid JSON\n", Fore.RED, assistant_reply)
 
     # All other errors, return "Error: + error message"
     except Exception as e:
         call_stack = traceback.format_exc()
-        print_to_console("Error: \n", Fore.RED, call_stack)
+        godmode_log = print_to_console(godmode_log, "Error: \n", Fore.RED, call_stack)
+    
+    return godmode_log, None
 
 
 def load_variables(config_file="config.yaml"):

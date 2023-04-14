@@ -1,6 +1,8 @@
+from io import BytesIO
 import json
 import time
 import traceback
+import uuid
 import commands as cmd
 from main import construct_prompt, print_assistant_thoughts
 from memory import get_memory
@@ -8,6 +10,20 @@ import chat
 from config import Config
 from ai_config import AIConfig
 import os
+from google.cloud import storage
+
+bucket_name = "godmode"
+
+bucket = storage.Client().bucket(bucket_name)
+
+
+def upload_file(text: str, session_id: str):
+    blob = bucket.blob(f"godmode-logs/{session_id}.txt")
+    blob.upload_from_string(
+        text,
+        content_type="text/plain",
+    )
+
 
 from llm_utils import create_chat_completion
 
@@ -66,7 +82,7 @@ def interact_with_ai(
         prompt, user_input, message_history, memory, 4000
     )
 
-    thoughts = print_assistant_thoughts(assistant_reply)
+    godmode_log, thoughts = print_assistant_thoughts(assistant_reply)
 
     # speak = thoughts["speak"]
 
