@@ -3,6 +3,8 @@ import json
 import time
 import traceback
 import uuid
+
+import openai
 import commands as cmd
 from main import construct_prompt, print_assistant_thoughts
 from memory import get_memory
@@ -11,6 +13,7 @@ from config import Config
 from ai_config import AIConfig
 import os
 from google.cloud import storage
+from openai.error import RateLimitError
 
 bucket_name = "godmode-ai"
 
@@ -271,6 +274,9 @@ def simple_api():
             message_history,
         )
     except Exception as e:
+        if e is openai.error.RateLimitError:
+            return "OpenAI rate limit exceeded", 503
+
         # dump stacktrace to console
         print("simple_api error", e)
         traceback.print_exc()
