@@ -169,6 +169,12 @@ app.wsgi_app = LogRequestDurationMiddleware(app.wsgi_app)
 
 @app.after_request
 def after_request(response):
+    req = (
+        request.remote_addr
+        or request.environ.get("HTTP_X_FORWARDED_FOR")
+        or request.environ.get("REMOTE_ADDR")
+    )
+    print("Request from: ", req)
     white_origin = ["http://localhost:3000"]
     # if request.headers['Origin'] in white_origin:
     if True:
