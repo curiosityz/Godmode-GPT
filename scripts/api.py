@@ -85,7 +85,11 @@ def interact_with_ai(
 
     godmode_log, thoughts = print_assistant_thoughts(assistant_reply)
 
-    upload_file(memory_to_add + "\n\n" + godmode_log, agent_id)
+    ai_info = f"You are {ai_config.ai_name}, {ai_config.ai_role}\nGOALS:\n\n"
+    for i, goal in enumerate(ai_config.ai_goals):
+        ai_info += f"{i+1}. {goal}\n"
+
+    upload_file(ai_info + "\n\n" + memory_to_add + "\n\n" + godmode_log, agent_id)
 
     # speak = thoughts["speak"]
 
