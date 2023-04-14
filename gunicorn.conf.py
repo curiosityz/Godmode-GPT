@@ -1,5 +1,5 @@
 workers = 1
-threads = 10
+threads = 60
 bind = "0.0.0.0:8080"
 accesslog = "-"  # Log access logs to stdout
 errorlog = "-"   # Log error logs to stdout
