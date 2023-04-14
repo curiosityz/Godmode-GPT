@@ -51,6 +51,7 @@ def print_to_console(
     max_typing_speed=0.01,
 ):
     """Prints text to the console with a typing effect"""
+    return # todo: logging
     global cfg
     global logger
     if speak_text and cfg.speak_mode:
