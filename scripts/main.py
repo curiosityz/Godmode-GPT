@@ -54,8 +54,8 @@ def print_to_console(
     max_typing_speed=0.01,
 ):
     """Prints text to the console with a typing effect"""
-    a += title_color + title + " " + Style.RESET_ALL + "\n"
-    return  # todo: logging
+    a += (title_color or '') + (title or '') + " " + (Style.RESET_ALL or '') + (content or '') + "\n"
+    return a
     global cfg
     global logger
     if speak_text and cfg.speak_mode:
@@ -243,62 +243,6 @@ def construct_prompt(config: AIConfig = AIConfig.load()):
     full_prompt = config.construct_full_prompt()
     return full_prompt
 
-
-def prompt_user():
-    """Prompt the user for input"""
-    ai_name = ""
-    # Construct the prompt
-    print_to_console(
-        "Welcome to Auto-GPT! ",
-        Fore.GREEN,
-        "Enter the name of your AI and its role below. Entering nothing will load defaults.",
-        speak_text=True,
-    )
-
-    # Get AI Name from User
-    print_to_console("Name your AI: ", Fore.GREEN, "For example, 'Entrepreneur-GPT'")
-    ai_name = utils.clean_input("AI Name: ")
-    if ai_name == "":
-        ai_name = "Entrepreneur-GPT"
-
-    print_to_console(
-        f"{ai_name} here!", Fore.LIGHTBLUE_EX, "I am at your service.", speak_text=True
-    )
-
-    # Get AI Role from User
-    print_to_console(
-        "Describe your AI's role: ",
-        Fore.GREEN,
-        "For example, 'an AI designed to autonomously develop and run businesses with the sole goal of increasing your net worth.'",
-    )
-    ai_role = utils.clean_input(f"{ai_name} is: ")
-    if ai_role == "":
-        ai_role = "an AI designed to autonomously develop and run businesses with the sole goal of increasing your net worth."
-
-    # Enter up to 5 goals for the AI
-    print_to_console(
-        "Enter up to 5 goals for your AI: ",
-        Fore.GREEN,
-        "For example: \nIncrease net worth, Grow Twitter Account, Develop and manage multiple businesses autonomously'",
-    )
-    print("Enter nothing to load defaults, enter nothing when finished.", flush=True)
-    ai_goals = []
-    for i in range(5):
-        ai_goal = utils.clean_input(f"{Fore.LIGHTBLUE_EX}Goal{Style.RESET_ALL} {i+1}: ")
-        if ai_goal == "":
-            break
-        ai_goals.append(ai_goal)
-    if len(ai_goals) == 0:
-        ai_goals = [
-            "Increase net worth",
-            "Grow Twitter Account",
-            "Develop and manage multiple businesses autonomously",
-        ]
-
-    config = AIConfig(ai_name, ai_role, ai_goals)
-    return config
-
-
 def parse_arguments():
     return
     # """Parses the arguments passed to the script"""
@@ -356,103 +300,3 @@ user_input = (
 # this is particularly important for indexing and referencing pinecone memory
 memory = get_memory(cfg)
 print("Using memory of type: " + memory.__class__.__name__)
-
-# Interaction Loop
-while False:
-    # Send message to AI, get response
-    with Spinner("Thinking... "):
-        assistant_reply = chat.chat_with_ai(
-            prompt, user_input, full_message_history, memory, cfg.fast_token_limit
-        )  # TODO: This hardcodes the model to use GPT3.5. Make this an argument
-
-    # Print Assistant thoughts
-    print_assistant_thoughts(assistant_reply)
-
-    # Get command name and arguments
-    try:
-        command_name, arguments = cmd.get_command(assistant_reply)
-    except Exception as e:
-        print_to_console("Error: \n", Fore.RED, str(e))
-
-    if not cfg.continuous_mode and next_action_count == 0:
-        ### GET USER AUTHORIZATION TO EXECUTE COMMAND ###
-        # Get key press: Prompt the user to press enter to continue or escape
-        # to exit
-        user_input = ""
-        print_to_console(
-            "NEXT ACTION: ",
-            Fore.CYAN,
-            f"COMMAND = {Fore.CYAN}{command_name}{Style.RESET_ALL}  ARGUMENTS = {Fore.CYAN}{arguments}{Style.RESET_ALL}",
-        )
-        print(
-            f"Enter 'y' to authorise command, 'y -N' to run N continuous commands, 'n' to exit program, or enter feedback for {ai_name}...",
-            flush=True,
-        )
-        while True:
-            console_input = utils.clean_input(Fore.MAGENTA + "Input:" + Style.RESET_ALL)
-            if console_input.lower() == "y":
-                user_input = "GENERATE NEXT COMMAND JSON"
-                break
-            elif console_input.lower().startswith("y -"):
-                try:
-                    next_action_count = abs(int(console_input.split(" ")[1]))
-                    user_input = "GENERATE NEXT COMMAND JSON"
-                except ValueError:
-                    print(
-                        "Invalid input format. Please enter 'y -n' where n is the number of continuous tasks."
-                    )
-                    continue
-                break
-            elif console_input.lower() == "n":
-                user_input = "EXIT"
-                break
-            else:
-                user_input = console_input
-                command_name = "human_feedback"
-                break
-
-        if user_input == "GENERATE NEXT COMMAND JSON":
-            print_to_console(
-                "-=-=-=-=-=-=-= COMMAND AUTHORISED BY USER -=-=-=-=-=-=-=",
-                Fore.MAGENTA,
-                "",
-            )
-        elif user_input == "EXIT":
-            print("Exiting...", flush=True)
-            break
-    else:
-        # Print command
-        print_to_console(
-            "NEXT ACTION: ",
-            Fore.CYAN,
-            f"COMMAND = {Fore.CYAN}{command_name}{Style.RESET_ALL}  ARGUMENTS = {Fore.CYAN}{arguments}{Style.RESET_ALL}",
-        )
-
-    # Execute command
-    if command_name.lower().startswith("error"):
-        result = f"Command {command_name} threw the following error: " + arguments
-    elif command_name == "human_feedback":
-        result = f"Human feedback: {user_input}"
-    else:
-        result = f"Command {command_name} returned: {cmd.execute_command(command_name, arguments)}"
-        if next_action_count > 0:
-            next_action_count -= 1
-
-    memory_to_add = (
-        f"Assistant Reply: {assistant_reply} "
-        f"\nResult: {result} "
-        f"\nHuman Feedback: {user_input} "
-    )
-
-    memory.add(memory_to_add)
-
-    # Check if there's a result from the command append it to the message
-    # history
-    if result is not None:
-        full_message_history.append(chat.create_chat_message("system", result))
-        print_to_console("SYSTEM: ", Fore.YELLOW, result)
-    else:
-        full_message_history.append(
-            chat.create_chat_message("system", "Unable to execute command")
-        )
-        print_to_console("SYSTEM: ", Fore.YELLOW, "Unable to execute command")

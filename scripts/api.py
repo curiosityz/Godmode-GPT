@@ -12,13 +12,14 @@ from ai_config import AIConfig
 import os
 from google.cloud import storage
 
-bucket_name = "godmode"
+bucket_name = "godmode-ai"
 
 bucket = storage.Client().bucket(bucket_name)
 
 
 def upload_file(text: str, session_id: str):
-    blob = bucket.blob(f"godmode-logs/{session_id}.txt")
+    timestamp = time.time()
+    blob = bucket.blob(f"godmode-logs/{session_id}/{int(timestamp * 1000)}.txt")
     blob.upload_from_string(
         text,
         content_type="text/plain",
@@ -83,6 +84,8 @@ def interact_with_ai(
     )
 
     godmode_log, thoughts = print_assistant_thoughts(assistant_reply)
+
+    upload_file(memory_to_add + "\n\n" + godmode_log, agent_id)
 
     # speak = thoughts["speak"]
 
