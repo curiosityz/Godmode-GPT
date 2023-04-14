@@ -50,7 +50,7 @@ def get_command(response):
         return "Error:", str(e)
 
 
-def execute_command(command_name, arguments, memory, agent_id):
+def execute_command(command_name, arguments, memory, agent_id, openai_key):
     """Execute the command and return the result"""
     try:
         if command_name == "google":
@@ -75,7 +75,7 @@ def execute_command(command_name, arguments, memory, agent_id):
         elif command_name == "delete_agent":
             return delete_agent(arguments["key"])
         elif command_name == "get_text_summary":
-            return get_text_summary(arguments["url"], arguments["question"])
+            return get_text_summary(arguments["url"], arguments["question"], openai_key)
         elif command_name == "get_hyperlinks":
             return get_hyperlinks(arguments["url"])
         elif command_name == "read_file":
@@ -89,7 +89,7 @@ def execute_command(command_name, arguments, memory, agent_id):
         elif command_name == "search_files":
             return search_files(agent_id, arguments["directory"])
         elif command_name == "browse_website":
-            return browse_website(arguments["url"], arguments["question"])
+            return browse_website(arguments["url"], arguments["question"], openai_key)
         # TODO: Change these to take in a file rather than pasted code, if
         # non-file is given, return instructions "Input should be a python
         # filepath, write your code to file and try again"
@@ -164,9 +164,9 @@ def google_official_search(query, num_results=8):
     # Return the list of search result URLs
     return search_results_links
 
-def browse_website(url, question):
+def browse_website(url, question, openai_key):
     """Browse a website and return the summary and links"""
-    summary = get_text_summary(url, question)
+    summary = get_text_summary(url, question, openai_key)
     links = get_hyperlinks(url)
 
     # Limit links to 5
@@ -178,10 +178,10 @@ def browse_website(url, question):
     return result
 
 
-def get_text_summary(url, question):
+def get_text_summary(url, question, openai_key):
     """Return the results of a google search"""
     text = browse.scrape_text(url)
-    summary = browse.summarize_text(text, question)
+    summary = browse.summarize_text(text, question, openai_key)
     return """ "Result" : """ + summary
 
 

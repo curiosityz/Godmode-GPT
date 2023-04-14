@@ -13,7 +13,7 @@ from config import Config
 from ai_config import AIConfig
 import os
 from google.cloud import storage
-from openai.error import RateLimitError
+from openai.error import OpenAIError
 
 bucket_name = "godmode-ai"
 
@@ -44,6 +44,7 @@ def interact_with_ai(
     assistant_reply,
     agent_id,
     message_history=[],
+    openai_key=None,
 ):
     prompt = construct_prompt(ai_config)
 
@@ -60,7 +61,7 @@ def interact_with_ai(
         elif command_name == "human_feedback":
             result = f"Human feedback: {arguments}"
         else:
-            result = f"Command {command_name} returned: {cmd.execute_command(command_name, arguments, memory, agent_id)}"
+            result = f"Command {command_name} returned: {cmd.execute_command(command_name, arguments, memory, agent_id, openai_key)}"
 
         # Check if there's a result from the command append it to the message
         # history
@@ -83,10 +84,10 @@ def interact_with_ai(
 
     # Send message to AI, get response
     assistant_reply = chat.chat_with_ai(
-        prompt, user_input, message_history, memory, 4000
+        prompt, user_input, message_history, memory, 4000, openai_key=openai_key
     )
 
-    godmode_log, thoughts = print_assistant_thoughts(assistant_reply)
+    godmode_log, thoughts = print_assistant_thoughts(assistant_reply, openai_key)
 
     ai_info = f"You are {ai_config.ai_name}, {ai_config.ai_role}\nGOALS:\n\n"
     for i, goal in enumerate(ai_config.ai_goals):
@@ -133,6 +134,7 @@ def interact_with_ai(
             ],
             model="gpt-3.5-turbo",
             temperature=0.2,
+            openai_key=openai_key,
         )
     except Exception as e:
         print(e)
@@ -198,29 +200,30 @@ def subgoals():
     request_data = request.get_json()
 
     goal = request_data["goal"]
-    openai_key = request_data.get("openai_key", "")
+    openai_key = request_data.get("openai_key", None)
 
-    # openai.api_key = openai_key
-
-    if openai_key != "" and openai_key is not None:
-        cfg.openai_api_key = openai_key
-
-    subgoals = create_chat_completion(
-        [
-            chat.create_chat_message(
-                "system",
-                "You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2021-09\nCurrent date: 2023-03-26",
-            ),
-            chat.create_chat_message(
-                "user",
-                f'Make a list of 3 subtasks to the overall goal of: "{goal}".\n'
-                + "\n"
-                + "ONLY answer this message with a numbered list of short, standalone subtasks. write nothing else. Make sure to make the subtask descriptions as brief as possible.",
-            ),
-        ],
-        model="gpt-3.5-turbo",
-        temperature=0.2,
-    )
+    subgoals = []
+    try:
+        subgoals = create_chat_completion(
+            [
+                chat.create_chat_message(
+                    "system",
+                    "You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2021-09\nCurrent date: 2023-03-26",
+                ),
+                chat.create_chat_message(
+                    "user",
+                    f'Make a list of 3 subtasks to the overall goal of: "{goal}".\n'
+                    + "\n"
+                    + "ONLY answer this message with a numbered list of short, standalone subtasks. write nothing else. Make sure to make the subtask descriptions as brief as possible.",
+                ),
+            ],
+            model="gpt-3.5-turbo",
+            temperature=0.2,
+            openai_key=openai_key,
+        )
+    except Exception as e:
+        if e is OpenAIError:
+            return "OpenAI rate limit exceeded", 503
 
     return json.dumps(
         {
@@ -243,13 +246,8 @@ def simple_api():
         ai_goals = request_data["ai_goals"]
         message_history = request_data.get("message_history", [])
 
-        # openai.api_key = openai_key
-
         agent_id = request_data["agent_id"]
         memory = get_memory(cfg, agent_id)
-
-        if openai_key != "" and openai_key is not None:
-            cfg.openai_api_key = openai_key
 
         conf = AIConfig(
             ai_name=ai_name,
@@ -272,9 +270,10 @@ def simple_api():
             assistant_reply,
             agent_id,
             message_history,
+            openai_key=openai_key,
         )
     except Exception as e:
-        if e is openai.error.RateLimitError:
+        if e is OpenAIError:
             return "OpenAI rate limit exceeded", 503
 
         # dump stacktrace to console

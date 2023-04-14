@@ -78,14 +78,14 @@ def print_to_console(
     print()
 
 
-def print_assistant_thoughts(assistant_reply) -> Tuple[str, str]:
+def print_assistant_thoughts(assistant_reply, openai_key) -> Tuple[str, str]:
     """Prints the assistant's thoughts to the console"""
     global ai_name
     global cfg
     godmode_log = ""
     try:
         # Parse and print Assistant response
-        assistant_reply_json = fix_and_parse_json(assistant_reply)
+        assistant_reply_json = fix_and_parse_json(assistant_reply, openai_key)
 
         # Check if assistant_reply_json is a string and attempt to parse it into a JSON object
         if isinstance(assistant_reply_json, str):

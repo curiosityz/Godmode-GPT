@@ -5,7 +5,7 @@ cfg = Config()
 from llm_utils import create_chat_completion
 # This is a magic function that can do anything with no-code. See
 # https://github.com/Torantulino/AI-Functions for more info.
-def call_ai_function(function, args, description, model=None):
+def call_ai_function(function, args, description, openai_key=None, model=None):
     """Call an AI function"""
     if model is None:
         model = cfg.smart_llm_model
@@ -22,7 +22,7 @@ def call_ai_function(function, args, description, model=None):
     ]
 
     response = create_chat_completion(
-        model=model, messages=messages, temperature=0
+        model=model, messages=messages, temperature=0, openai_key=openai_key
     )
 
     return response

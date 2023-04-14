@@ -28,7 +28,7 @@ JSON_SCHEMA = """
 
 
 def fix_and_parse_json(
-    json_str: str, try_to_fix_with_gpt: bool = True
+    json_str: str, try_to_fix_with_gpt: bool = True, openai_key=None
 ) -> Union[str, Dict[Any, Any]]:
     """Fix and parse JSON string"""
     try:
@@ -57,7 +57,7 @@ def fix_and_parse_json(
     except (json.JSONDecodeError, ValueError) as e:  # noqa: F841
         if try_to_fix_with_gpt:
             # Now try to fix this up using the ai_functions
-            ai_fixed_json = fix_json(json_str, JSON_SCHEMA)
+            ai_fixed_json = fix_json(json_str, JSON_SCHEMA, openai_key)
 
             if ai_fixed_json != "failed":
                 return json.loads(ai_fixed_json)
@@ -69,7 +69,7 @@ def fix_and_parse_json(
             raise e
 
 
-def fix_json(json_str: str, schema: str) -> str:
+def fix_json(json_str: str, schema: str, openai_key) -> str:
     """Fix the given JSON string to make it parseable and fully compliant with the provided schema."""
     # Try to fix the JSON using GPT:
     function_string = "def fix_json(json_str: str, schema:str=None) -> str:"
@@ -86,7 +86,7 @@ def fix_json(json_str: str, schema: str) -> str:
     if not json_str.startswith("`"):
         json_str = "```json\n" + json_str + "\n```"
     result_string = call_ai_function(
-        function_string, args, description_string, model=cfg.fast_llm_model
+        function_string, args, description_string, openai_key=openai_key, model=cfg.fast_llm_model
     )
 
     try:

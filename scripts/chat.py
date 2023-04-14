@@ -44,7 +44,8 @@ def chat_with_ai(
         user_input,
         full_message_history,
         permanent_memory,
-        token_limit):
+        token_limit,
+        openai_key):
     """Interact with the OpenAI API, sending the prompt, user input, message history, and permanent memory."""
     while True:
         try:
@@ -129,6 +130,7 @@ def chat_with_ai(
                 model=model,
                 messages=current_context,
                 max_tokens=tokens_remaining,
+                openai_key=openai_key,
             )
 
             # Update full message history
