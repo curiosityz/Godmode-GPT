@@ -174,7 +174,8 @@ def after_request(response):
         or request.environ.get("HTTP_X_FORWARDED_FOR")
         or request.environ.get("REMOTE_ADDR")
     )
-    print("Request from: ", req)
+    path = request.path
+    print(f"Request to {path} from IP {req}")
     white_origin = ["http://localhost:3000"]
     # if request.headers['Origin'] in white_origin:
     if True:
