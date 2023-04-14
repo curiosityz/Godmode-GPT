@@ -1,5 +1,6 @@
 import json
 import time
+import traceback
 import commands as cmd
 from main import construct_prompt, print_assistant_thoughts
 from memory import get_memory
@@ -240,7 +241,9 @@ def simple_api():
             message_history,
         )
     except Exception as e:
-        print(e)
+        # dump stacktrace to console
+        print("simple_api error", e)
+        traceback.print_exc()
         raise e
 
     return json.dumps(
