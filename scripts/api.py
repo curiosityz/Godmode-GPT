@@ -222,7 +222,8 @@ def subgoals():
             openai_key=openai_key,
         )
     except Exception as e:
-        if e is OpenAIError:
+        print(e)
+        if "exceeded your current quota" in str(e) or "openai" in str(e).lower():
             return "OpenAI rate limit exceeded", 503
 
     return json.dumps(
@@ -273,7 +274,7 @@ def simple_api():
             openai_key=openai_key,
         )
     except Exception as e:
-        if e is OpenAIError:
+        if "exceeded your current quota" in str(e) or "openai" in str(e).lower():
             return "OpenAI rate limit exceeded", 503
 
         # dump stacktrace to console
