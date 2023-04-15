@@ -25,7 +25,9 @@ def write_to_file(agent_id, filename, text):
 def append_to_file(agent_id, filename, text):
     """Append text to a file"""
     try:
-        
+        prevtxt = get_file(filename, agent_id)
+        write_file(prevtxt + "\n" + text, filename, agent_id)
+
         return "Text appended successfully."
     except Exception as e:
         return "Error: " + str(e)
