@@ -1,3 +1,4 @@
+from functools import wraps
 import json
 import time
 import traceback
@@ -10,6 +11,8 @@ from ai_config import AIConfig
 import os
 from google.cloud import storage
 from openai.error import OpenAIError
+import firebase_admin
+from firebase_admin import auth as firebase_auth
 
 bucket_name = "godmode-ai"
 
@@ -148,7 +151,7 @@ def interact_with_ai(
 
 # make an api using flask
 
-from flask import Flask, request
+from flask import Flask, jsonify, request
 
 
 class LogRequestDurationMiddleware:
@@ -175,10 +178,15 @@ def get_remote_address() -> str:
         or request.remote_addr
     )
 
+
 if cfg.redis_host is None:
     limiter = Limiter(app=app, key_func=get_remote_address)
 else:
-    limiter = Limiter(app=app, key_func=get_remote_address, storage_uri=f"redis://{cfg.redis_host}:{cfg.redis_port}")
+    limiter = Limiter(
+        app=app,
+        key_func=get_remote_address,
+        storage_uri=f"redis://{cfg.redis_host}:{cfg.redis_port}",
+    )
 
 app.wsgi_app = LogRequestDurationMiddleware(app.wsgi_app)
 
@@ -186,8 +194,11 @@ app.wsgi_app = LogRequestDurationMiddleware(app.wsgi_app)
 @app.after_request
 def after_request(response):
     ip = get_remote_address()
-    path = request.path
-    print(f"Request to {path} from IP {ip}")
+    # check if request has user
+    if hasattr(request, "user"):
+        print(f"{request.method} {request.path} {response.status_code}: IP {ip} from user {request.user}")
+    else:
+        print(f"{request.method} {request.path} {response.status_code}: IP {ip} with no user")
     white_origin = ["http://localhost:3000"]
     # if request.headers['Origin'] in white_origin:
     if True:
@@ -201,18 +212,68 @@ def after_request(response):
 def health():
     return "OK"
 
+
 def make_rate_limit(rate: str):
     def get_rate_limit():
         request_data = request.get_json()
-        if request_data.get("openai_key", None) is not None and request_data.get("openai_key", "").length > 0:
+        if (
+            request_data.get("openai_key", None) is not None
+            and len(request_data.get("openai_key", "")) > 0
+        ):
             return "1000 per day;600 per hour;100 per minute"
 
         return rate
 
     return get_rate_limit
 
+
+firebase_admin.initialize_app()
+
+
+def verify_firebase_token(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            request_data = request.get_json()
+            if (
+                request_data.get("openai_key", None) is not None
+                and len(request_data.get("openai_key", "")) > 0
+            ):
+                return f(*args, **kwargs)
+        except Exception as e:
+            print(e)
+
+        id_token = request.headers.get("Authorization")
+        if not id_token:
+            return (
+                jsonify(
+                    {
+                        "error": "Unauthorized",
+                        "message": "Please login or set an API key to continue",
+                    }
+                ),
+                401,
+            )
+
+        try:
+            # Remove 'Bearer ' from the token if it's present
+            if id_token.startswith("Bearer "):
+                id_token = id_token[7:]
+            decoded_token = firebase_auth.verify_id_token(id_token)
+            request.user = decoded_token
+        except ValueError as e:
+            return jsonify({"error": "Unauthorized", "message": str(e)}), 401
+        except Exception as e:
+            return jsonify({"error": "Unauthorized", "message": str(e)}), 401
+
+        return f(*args, **kwargs)
+
+    return wrapper
+
+
 @app.route("/api-goal-subgoals", methods=["POST"])
 @limiter.limit(make_rate_limit("100 per day;60 per hour;15 per minute"))
+@verify_firebase_token
 def subgoals():
     request_data = request.get_json()
 
@@ -240,9 +301,8 @@ def subgoals():
             openai_key=openai_key,
         )
     except Exception as e:
-        print(e)
-        if isinstance(e, OpenAIError) or "exceeded your current quota" in str(e) or "openai" in str(e).lower():
-            return "OpenAI rate limit exceeded", 503
+        if isinstance(e, OpenAIError):
+            return e.error, 503
 
     return json.dumps(
         {
@@ -253,6 +313,7 @@ def subgoals():
 
 @app.route("/api", methods=["POST"])
 @limiter.limit(make_rate_limit("500 per day;200 per hour;8 per minute"))
+@verify_firebase_token
 def simple_api():
     try:
         request_data = request.get_json()
@@ -293,8 +354,8 @@ def simple_api():
             openai_key=openai_key,
         )
     except Exception as e:
-        if isinstance(e, OpenAIError) or "exceeded your current quota" in str(e) or "openai" in str(e).lower():
-            return "OpenAI rate limit exceeded", 503
+        if isinstance(e, OpenAIError):
+            return e.error, 503
 
         # dump stacktrace to console
         print("simple_api error", e)
