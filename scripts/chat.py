@@ -2,6 +2,7 @@ import time
 import openai
 from dotenv import load_dotenv
 from config import Config
+from memory.pinecone import PineconeMemory
 import token_counter
 from llm_utils import create_chat_completion
 
@@ -43,7 +44,7 @@ def chat_with_ai(
         prompt,
         user_input,
         full_message_history,
-        permanent_memory,
+        permanent_memory: PineconeMemory,
         token_limit,
         openai_key):
     """Interact with the OpenAI API, sending the prompt, user input, message history, and permanent memory."""
@@ -70,7 +71,7 @@ def chat_with_ai(
 
             send_token_limit = token_limit - 1000
 
-            relevant_memory = permanent_memory.get_relevant(str(full_message_history[-5:]), 10)
+            relevant_memory = permanent_memory.get_relevant(str(full_message_history[-5:]), openai_key, 10)
 
             if cfg.debug_mode:
                 print('Memory Stats: ', permanent_memory.get_stats())

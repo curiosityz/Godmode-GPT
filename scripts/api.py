@@ -79,7 +79,7 @@ def interact_with_ai(
         f"\nHuman Feedback: {user_input} "
     )
 
-    memory.add(memory_to_add)
+    memory.add(memory_to_add, openai_key)
 
     # Send message to AI, get response
     assistant_reply = chat.chat_with_ai(
@@ -334,6 +334,7 @@ def simple_api():
         arguments = request_data["arguments"]
         assistant_reply = request_data.get("assistant_reply", "")
         openai_key = request_data.get("openai_key", None)
+
         ai_name = request_data["ai_name"]
         ai_description = request_data["ai_description"]
         ai_goals = request_data["ai_goals"]
