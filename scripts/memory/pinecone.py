@@ -3,14 +3,17 @@ import pinecone
 
 from memory.base import MemoryProviderSingleton, get_ada_embedding
 
+from config import Config
+
+cfg = Config()
+
+pinecone_api_key = cfg.pinecone_api_key
+pinecone_region = cfg.pinecone_region
+pinecone.init(api_key=pinecone_api_key, environment=pinecone_region)
 
 class PineconeMemory(MemoryProviderSingleton):
     def __init__(self, cfg, id = None):
-        
-        pinecone_api_key = cfg.pinecone_api_key
-        pinecone_region = cfg.pinecone_region
         self.namespace = id
-        pinecone.init(api_key=pinecone_api_key, environment=pinecone_region)
         dimension = 1536
         metric = "cosine"
         pod_type = "p1"
@@ -22,8 +25,9 @@ class PineconeMemory(MemoryProviderSingleton):
         if table_name not in pinecone.list_indexes():
             pinecone.create_index(table_name, dimension=dimension, metric=metric, pod_type=pod_type)
         
-        from pinecone import Config
-        print('config exists: ', Config.OPENAPI_CONFIG is not None)
+        if pinecone.Config.OPENAPI_CONFIG is None:
+            print('Pinecone error:  Config doesn\'t exist')
+
         self.index = pinecone.Index(table_name)
 
     def add(self, data):
