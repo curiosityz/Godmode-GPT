@@ -1,5 +1,5 @@
 from google.cloud import firestore
-from api_utils import get_file, list_files, upload_log, write_file
+from api_utils import get_file, list_files, write_file
 
 db = firestore.Client()
 collection = db.collection("godmode-files")
