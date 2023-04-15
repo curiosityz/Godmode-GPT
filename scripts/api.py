@@ -196,7 +196,7 @@ app.wsgi_app = LogRequestDurationMiddleware(app.wsgi_app)
 def after_request(response):
     ip = get_remote_address()
     try:
-        openai_key = request.json().get("openai_key", None)
+        openai_key = request.json["openai_key"]
         openai_key = openai_key[:5] + "..." + openai_key[-5:]
     except Exception as e:
         openai_key = "None"
