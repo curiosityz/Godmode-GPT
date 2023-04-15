@@ -13,7 +13,7 @@ from openai.error import OpenAIError
 import firebase_admin
 from firebase_admin import auth as firebase_auth
 from llm_utils import create_chat_completion
-from api_utils import upload_log
+from api_utils import upload_log, get_file_urls
 
 cfg = Config()
 
@@ -373,9 +373,6 @@ def simple_api():
     )
 
 
-from file_operations import search_files, collection
-
-
 @app.route("/api/files", methods=["POST"])
 @limiter.limit("800 per day;400 per hour;16 per minute")
 # @verify_firebase_token
@@ -383,13 +380,9 @@ def api_files():
     try:
         request_data = request.get_json()
         agent_id = request_data["agent_id"]
-
-        files = collection.where("agent_id", "==", agent_id).stream()
-        file_list = []
-        for file in files:
-            file_list.append({"content": file.to_dict()["content"], "id": file.id})
-
-        return file_list
+        
+        files = get_file_urls(agent_id)
+        return files
     except Exception as e:
         if isinstance(e, OpenAIError):
             return e.error, 503
