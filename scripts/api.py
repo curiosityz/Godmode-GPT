@@ -175,8 +175,10 @@ def get_remote_address() -> str:
         or request.remote_addr
     )
 
-
-limiter = Limiter(app=app, key_func=get_remote_address, storage_uri=f"redis://{cfg.redis_host}:6379")
+if cfg.redis_host is None:
+    limiter = Limiter(app=app, key_func=get_remote_address)
+else:
+    limiter = Limiter(app=app, key_func=get_remote_address, storage_uri=f"redis://{cfg.redis_host}:{cfg.redis_port}")
 
 app.wsgi_app = LogRequestDurationMiddleware(app.wsgi_app)
 
