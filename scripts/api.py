@@ -1,10 +1,6 @@
-from io import BytesIO
 import json
 import time
 import traceback
-import uuid
-
-import openai
 import commands as cmd
 from main import construct_prompt, print_assistant_thoughts
 from memory import get_memory
@@ -167,20 +163,29 @@ class LogRequestDurationMiddleware:
         return response
 
 
+from flask_limiter import Limiter
+
 app = Flask(__name__)
+
+
+def get_remote_address() -> str:
+    return (
+        request.environ.get("HTTP_X_FORWARDED_FOR")
+        or request.environ.get("REMOTE_ADDR")
+        or request.remote_addr
+    )
+
+
+limiter = Limiter(app, key_func=get_remote_address)
 
 app.wsgi_app = LogRequestDurationMiddleware(app.wsgi_app)
 
 
 @app.after_request
 def after_request(response):
-    req = (
-        request.environ.get("HTTP_X_FORWARDED_FOR")
-        or request.remote_addr
-        or request.environ.get("REMOTE_ADDR")
-    )
+    ip = get_remote_address()
     path = request.path
-    print(f"Request to {path} from IP {req}")
+    print(f"Request to {path} from IP {ip}")
     white_origin = ["http://localhost:3000"]
     # if request.headers['Origin'] in white_origin:
     if True:
@@ -194,8 +199,18 @@ def after_request(response):
 def health():
     return "OK"
 
+def make_rate_limit(rate: str):
+    def get_rate_limit():
+        request_data = request.get_json()
+        if request_data.get("openai_key", None) is not None and request_data.get("openai_key", "").length > 0:
+            return "1000 per day;600 per hour;100 per minute"
+
+        return rate
+
+    return get_rate_limit
 
 @app.route("/api-goal-subgoals", methods=["POST"])
+@limiter.limit(make_rate_limit("100 per day;60 per hour;15 per minute"))
 def subgoals():
     request_data = request.get_json()
 
@@ -219,11 +234,12 @@ def subgoals():
             ],
             model="gpt-3.5-turbo",
             temperature=0.2,
+            max_tokens=150,
             openai_key=openai_key,
         )
     except Exception as e:
         print(e)
-        if "exceeded your current quota" in str(e) or "openai" in str(e).lower():
+        if isinstance(e, OpenAIError) or "exceeded your current quota" in str(e) or "openai" in str(e).lower():
             return "OpenAI rate limit exceeded", 503
 
     return json.dumps(
@@ -234,6 +250,7 @@ def subgoals():
 
 
 @app.route("/api", methods=["POST"])
+@limiter.limit(make_rate_limit("500 per day;200 per hour;8 per minute"))
 def simple_api():
     try:
         request_data = request.get_json()
@@ -274,7 +291,7 @@ def simple_api():
             openai_key=openai_key,
         )
     except Exception as e:
-        if "exceeded your current quota" in str(e) or "openai" in str(e).lower():
+        if isinstance(e, OpenAIError) or "exceeded your current quota" in str(e) or "openai" in str(e).lower():
             return "OpenAI rate limit exceeded", 503
 
         # dump stacktrace to console

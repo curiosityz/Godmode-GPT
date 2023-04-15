@@ -19,3 +19,4 @@ google-cloud-firestore
 flask
 google-cloud-storage
 gunicorn
+Flask-Limiter==3.3.0
