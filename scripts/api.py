@@ -175,8 +175,8 @@ app.wsgi_app = LogRequestDurationMiddleware(app.wsgi_app)
 @app.after_request
 def after_request(response):
     req = (
-        request.remote_addr
-        or request.environ.get("HTTP_X_FORWARDED_FOR")
+        request.environ.get("HTTP_X_FORWARDED_FOR")
+        or request.remote_addr
         or request.environ.get("REMOTE_ADDR")
     )
     path = request.path
