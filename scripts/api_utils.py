@@ -24,7 +24,6 @@ def write_file(text: str, filename: str, agent_id: str):
         text,
         content_type="text/plain",
     )
-    blob.acl.all().grant_read()
 
 
 def get_file(filename: str, agent_id: str):

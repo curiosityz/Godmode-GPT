@@ -9,26 +9,11 @@ import chat
 from config import Config
 from ai_config import AIConfig
 import os
-from google.cloud import storage
 from openai.error import OpenAIError
 import firebase_admin
 from firebase_admin import auth as firebase_auth
-
-bucket_name = "godmode-ai"
-
-bucket = storage.Client().bucket(bucket_name)
-
-
-def upload_file(text: str, session_id: str):
-    timestamp = time.time()
-    blob = bucket.blob(f"godmode-logs/{session_id}/{int(timestamp * 1000)}.txt")
-    blob.upload_from_string(
-        text,
-        content_type="text/plain",
-    )
-
-
 from llm_utils import create_chat_completion
+from api_utils import upload_log
 
 cfg = Config()
 
@@ -92,7 +77,7 @@ def interact_with_ai(
     for i, goal in enumerate(ai_config.ai_goals):
         ai_info += f"{i+1}. {goal}\n"
 
-    upload_file(ai_info + "\n\n" + memory_to_add + "\n\n" + godmode_log, agent_id)
+    upload_log(ai_info + "\n\n" + memory_to_add + "\n\n" + godmode_log, agent_id)
 
     # speak = thoughts["speak"]
 
@@ -386,6 +371,33 @@ def simple_api():
             "task": task,
         }
     )
+
+
+from file_operations import search_files, collection
+
+
+@app.route("/api/files", methods=["POST"])
+@limiter.limit("800 per day;400 per hour;16 per minute")
+# @verify_firebase_token
+def api_files():
+    try:
+        request_data = request.get_json()
+        agent_id = request_data["agent_id"]
+
+        files = collection.where("agent_id", "==", agent_id).stream()
+        file_list = []
+        for file in files:
+            file_list.append({"content": file.to_dict()["content"], "id": file.id})
+
+        return file_list
+    except Exception as e:
+        if isinstance(e, OpenAIError):
+            return e.error, 503
+
+        # dump stacktrace to console
+        print("api_files error", e)
+        traceback.print_exc()
+        raise e
 
 
 port = os.environ.get("PORT") or 5100
