@@ -195,15 +195,26 @@ app.wsgi_app = LogRequestDurationMiddleware(app.wsgi_app)
 @app.after_request
 def after_request(response):
     ip = get_remote_address()
+    try:
+        openai_key = request.json().get("openai_key", None)
+        openai_key = openai_key[:5] + "..." + openai_key[-5:]
+    except Exception as e:
+        openai_key = "None"
     # check if request has user
     if hasattr(request, "user"):
-        print(f"{request.method} {request.path} {response.status_code}: IP {ip} from user {request.user}")
+        print(
+            f"{request.method} {request.path} {response.status_code}: IP {ip} from user {request.user} with key {openai_key}"
+        )
     else:
-        print(f"{request.method} {request.path} {response.status_code}: IP {ip} with no user")
+        print(
+            f"{request.method} {request.path} {response.status_code}: IP {ip} with no user with key {openai_key}"
+        )
     white_origin = ["http://localhost:3000"]
     # if request.headers['Origin'] in white_origin:
     if True:
-        response.headers["Access-Control-Allow-Origin"] = request.headers["Origin"]
+        response.headers["Access-Control-Allow-Origin"] = request.headers.get(
+            "Origin", ""
+        )
         response.headers["Access-Control-Allow-Methods"] = "PUT,GET,POST,DELETE"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
     return response
