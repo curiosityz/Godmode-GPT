@@ -87,7 +87,7 @@ def execute_command(command_name, arguments, memory, agent_id, openai_key):
         elif command_name == "delete_file":
             return delete_file(agent_id, arguments["file"])
         elif command_name == "search_files":
-            return search_files(agent_id, arguments["directory"])
+            return search_files(agent_id)
         elif command_name == "browse_website":
             return browse_website(arguments["url"], arguments["question"], openai_key)
         # TODO: Change these to take in a file rather than pasted code, if
