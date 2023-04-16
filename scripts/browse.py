@@ -102,7 +102,7 @@ def create_message(chunk, question):
         "content": f"\"\"\"{chunk}\"\"\" Using the above text, please answer the following question: \"{question}\" -- if the question cannot be answered using the text, please summarize the text."
     }
 
-def summarize_text(text, question, openai_key=None):
+def summarize_text(text, question, model, openai_key=None):
     """Summarize text using the LLM model"""
     if not text:
         return "Error: No text to summarize"
@@ -118,7 +118,7 @@ def summarize_text(text, question, openai_key=None):
         messages = [create_message(chunk, question)]
 
         summary = create_chat_completion(
-            model=cfg.fast_llm_model,
+            model=model,
             messages=messages,
             max_tokens=300,
             openai_key=openai_key,
@@ -131,7 +131,7 @@ def summarize_text(text, question, openai_key=None):
     messages = [create_message(combined_summary, question)]
 
     final_summary = create_chat_completion(
-        model=cfg.fast_llm_model,
+        model=model,
         messages=messages,
         max_tokens=300,
         openai_key=openai_key,

@@ -28,6 +28,7 @@ def interact_with_ai(
     assistant_reply,
     agent_id,
     message_history=[],
+    model="gpt-3.5-turbo",
     openai_key=None,
 ):
     prompt = construct_prompt(ai_config)
@@ -47,7 +48,7 @@ def interact_with_ai(
         elif command_name == "human_feedback":
             result = f"Human feedback: {arguments}"
         else:
-            result = f"Command {command_name} returned: {cmd.execute_command(command_name, arguments, memory, agent_id, openai_key)}"
+            result = f"Command {command_name} returned: {cmd.execute_command(command_name, arguments, memory, agent_id, model, openai_key)}"
 
         # Check if there's a result from the command append it to the message
         # history
@@ -70,7 +71,7 @@ def interact_with_ai(
 
     # Send message to AI, get response
     assistant_reply = chat.chat_with_ai(
-        prompt, user_input, message_history, memory, 4000, openai_key=openai_key
+        prompt, user_input, message_history, memory, 4000, model=model, openai_key=openai_key
     )
 
     # Add assistant thoughts to log, get thoughts dict
@@ -173,11 +174,13 @@ app.wsgi_app = LogRequestDurationMiddleware(app.wsgi_app)
 @app.after_request
 def after_request(response):
     ip = get_remote_address()
+    openai_key = "None"
     try:
-        openai_key = request.json["openai_key"]
-        openai_key = openai_key[:5] + "..." + openai_key[-5:]
+        if request.json is not None and "openai_key" in request.json:
+            openai_key = request.json["openai_key"]
+            openai_key = openai_key[:5] + "..." + openai_key[-5:]
     except Exception as e:
-        openai_key = "None"
+        pass
     # check if request has user
     if hasattr(request, "user"):
         print(
@@ -313,6 +316,12 @@ def simple_api():
         assistant_reply = request_data.get("assistant_reply", "")
         openai_key = request_data.get("openai_key", None)
 
+        gpt_model = "gpt-3.5-turbo"
+        if len(openai_key or "") == 0:
+            gpt_model = "gpt-3.5-turbo"
+        else:
+            gpt_model = request_data.get("gpt_model", "gpt-3.5-turbo")
+
         ai_name = request_data["ai_name"]
         ai_description = request_data["ai_description"]
         ai_goals = request_data["ai_goals"]
@@ -342,6 +351,7 @@ def simple_api():
             assistant_reply,
             agent_id,
             message_history,
+            model=gpt_model,
             openai_key=openai_key,
         )
     except Exception as e:
@@ -386,7 +396,7 @@ def api_files():
         raise e
 
 
-port = os.environ.get("PORT") or 5100
+port = int(os.environ.get("PORT") or 5100)
 host = os.environ.get("HOST") or None
 
 if __name__ == "__main__":

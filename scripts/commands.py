@@ -1,3 +1,4 @@
+from typing import Literal
 import browse
 import json
 from memory import get_memory
@@ -50,7 +51,7 @@ def get_command(response):
         return "Error:", str(e)
 
 
-def execute_command(command_name, arguments, memory, agent_id, openai_key):
+def execute_command(command_name, arguments, memory, agent_id, model, openai_key):
     """Execute the command and return the result"""
     try:
         if command_name == "google":
@@ -89,7 +90,7 @@ def execute_command(command_name, arguments, memory, agent_id, openai_key):
         elif command_name == "search_files":
             return search_files(agent_id)
         elif command_name == "browse_website":
-            return browse_website(arguments["url"], arguments["question"], openai_key)
+            return browse_website(arguments["url"], arguments["question"], model, openai_key)
         # TODO: Change these to take in a file rather than pasted code, if
         # non-file is given, return instructions "Input should be a python
         # filepath, write your code to file and try again"
@@ -164,9 +165,9 @@ def google_official_search(query, num_results=8):
     # Return the list of search result URLs
     return search_results_links
 
-def browse_website(url, question, openai_key):
+def browse_website(url, question, model, openai_key):
     """Browse a website and return the summary and links"""
-    summary = get_text_summary(url, question, openai_key)
+    summary = get_text_summary(url, question, model, openai_key)
     links = get_hyperlinks(url)
 
     # Limit links to 5
@@ -178,10 +179,10 @@ def browse_website(url, question, openai_key):
     return result
 
 
-def get_text_summary(url, question, openai_key):
+def get_text_summary(url, question, model: Literal["gpt-3.5-turbo","gpt-4"], openai_key):
     """Return the results of a google search"""
     text = browse.scrape_text(url)
-    summary = browse.summarize_text(text, question, openai_key)
+    summary = browse.summarize_text(text, question, model, openai_key)
     return """ "Result" : """ + summary
 
 

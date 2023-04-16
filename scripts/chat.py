@@ -46,7 +46,8 @@ def chat_with_ai(
         full_message_history,
         permanent_memory: PineconeMemory,
         token_limit,
-        openai_key):
+        openai_key,
+        model="gpt-3.5-turbo"):
     """Interact with the OpenAI API, sending the prompt, user input, message history, and permanent memory."""
     while True:
         try:
@@ -63,9 +64,6 @@ def chat_with_ai(
             Returns:
             str: The AI's response.
             """
-            model = cfg.fast_llm_model # TODO: Change model from hardcode to argument
-            # Reserve 1000 tokens for the response
-
             if cfg.debug_mode:
                 print(f"Token limit: {token_limit}")
 
