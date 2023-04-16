@@ -32,12 +32,14 @@ def interact_with_ai(
 ):
     prompt = construct_prompt(ai_config)
 
+    # set user input to be the command
     user_input = (
         arguments if command_name == "human_feedback" else "GENERATE NEXT COMMAND JSON"
     )
     output = None
     result = None
 
+    # If the command is not the start command, execute it
     if command_name != START:
         # Execute command
         if command_name.lower().startswith("error"):
@@ -58,12 +60,12 @@ def interact_with_ai(
     else:
         user_input = "Determine which next command to use, and respond using the format specified above:"
 
+    # Add user input to message history
     memory_to_add = (
         f"Assistant Reply: {assistant_reply} "
         f"\nResult: {result} "
         f"\nHuman Feedback: {user_input} "
     )
-
     memory.add(memory_to_add, openai_key)
 
     # Send message to AI, get response
@@ -71,31 +73,22 @@ def interact_with_ai(
         prompt, user_input, message_history, memory, 4000, openai_key=openai_key
     )
 
+    # Add assistant thoughts to log, get thoughts dict
     godmode_log, thoughts = print_assistant_thoughts(assistant_reply, openai_key)
 
+    # upload log
     ai_info = f"You are {ai_config.ai_name}, {ai_config.ai_role}\nGOALS:\n\n"
     for i, goal in enumerate(ai_config.ai_goals):
         ai_info += f"{i+1}. {goal}\n"
-
     upload_log(ai_info + "\n\n" + memory_to_add + "\n\n" + godmode_log, agent_id)
 
-    # speak = thoughts["speak"]
-
-    # memory_to_add = f"Assistant Reply: {assistant_reply} " \
-    #                 f"\nResult: {result} " \
-    #                 f"\nHuman Feedback: {user_input} "
-
-    # memory (pinecone or whatever it called or just local files)
-    # full message hist (amazon smth)
-    # user input (nothing)
-    # prompt (nothing)
-
-    # Get command name and arguments
+    # Get command name and arguments from reply
     try:
         command_name, arguments = cmd.get_command(assistant_reply)
     except Exception as e:
         print(e)
 
+    # generate simplified task name
     task = None
     try:
         task = create_chat_completion(
