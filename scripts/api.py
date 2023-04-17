@@ -377,7 +377,7 @@ def simple_api():
 
 
 @app.route("/api/files", methods=["POST"])
-@limiter.limit("800 per day;400 per hour;16 per minute")
+@limiter.limit("2000 per day;600 per hour;30 per minute")
 # @verify_firebase_token
 def api_files():
     try:
