@@ -213,7 +213,7 @@ def make_rate_limit(rate: str):
             request_data.get("openai_key", None) is not None
             and len(request_data.get("openai_key", "")) > 0
         ):
-            return "1000 per day;600 per hour;100 per minute"
+            return "6000 per day;3000 per hour;100 per minute"
 
         return rate
 
