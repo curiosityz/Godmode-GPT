@@ -13,7 +13,7 @@ from autogpt.config import Config
 global_config = Config()
 
 
-@command("generate_image", "Generate Image", '"prompt": "<prompt>"', CFG.image_provider)
+@command("generate_image", "Generate Image", '"prompt": "<prompt>"', global_config.image_provider)
 def generate_image(prompt: str, size: int = 256) -> str:
     """Generate an image from a prompt.
 
@@ -24,7 +24,7 @@ def generate_image(prompt: str, size: int = 256) -> str:
     Returns:
         str: The filename of the image
     """
-    filename = f"{CFG.workspace_path}/{str(uuid.uuid4())}.jpg"
+    filename = f"{global_config.workspace_path}/{str(uuid.uuid4())}.jpg"
 
     # DALL-E
     if global_config.image_provider == "dalle":
@@ -32,7 +32,7 @@ def generate_image(prompt: str, size: int = 256) -> str:
     elif global_config.image_provider == "sd":
         return generate_image_with_hf(prompt, filename)
     # SD WebUI
-    elif CFG.image_provider == "sdwebui":
+    elif global_config.image_provider == "sdwebui":
         return generate_image_with_sd_webui(prompt, filename, size)
     return "No Image Provider Set"
 
@@ -48,7 +48,7 @@ def generate_image_with_hf(prompt: str, filename: str) -> str:
         str: The filename of the image
     """
     API_URL = (
-        f"https://api-inference.huggingface.co/models/{CFG.huggingface_image_model}"
+        f"https://api-inference.huggingface.co/models/{global_config.huggingface_image_model}"
     )
     if global_config.huggingface_api_token is None:
         raise ValueError(
@@ -93,7 +93,7 @@ def generate_image_with_dalle(prompt: str, filename: str, size: int) -> str:
         n=1,
         size=f"{size}x{size}",
         response_format="b64_json",
-        api_key=CFG.openai_api_key,
+        api_key=global_config.openai_api_key,
     )
 
     print(f"Image Generated for prompt:{prompt}")
@@ -125,13 +125,13 @@ def generate_image_with_sd_webui(
     """
     # Create a session and set the basic auth if needed
     s = requests.Session()
-    if CFG.sd_webui_auth:
-        username, password = CFG.sd_webui_auth.split(":")
+    if global_config.sd_webui_auth:
+        username, password = global_config.sd_webui_auth.split(":")
         s.auth = (username, password or "")
 
     # Generate the images
     response = requests.post(
-        f"{CFG.sd_webui_url}/sdapi/v1/txt2img",
+        f"{global_config.sd_webui_url}/sdapi/v1/txt2img",
         json={
             "prompt": prompt,
             "negative_prompt": negative_prompt,

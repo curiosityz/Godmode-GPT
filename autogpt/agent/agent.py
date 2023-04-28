@@ -3,15 +3,13 @@ from colorama import Fore, Style
 from autogpt.agent_manager import AgentManager
 from autogpt.api_utils import upload_log
 from autogpt.app import execute_command, get_command
-
-from autogpt.app import execute_command, get_command
 from autogpt.chat import chat_with_ai, create_chat_message
 from autogpt.config import Config
+from autogpt.config.ai_config import AIConfig
 from autogpt.json_utils.json_fix_llm import fix_json_using_multiple_techniques
 from autogpt.json_utils.utilities import validate_json
 from autogpt.llm_utils import create_chat_completion
 from autogpt.config.config import is_valid_int
-from autogpt.json_validation.validate_json import validate_json
 from autogpt.logs import logger, print_assistant_thoughts
 from autogpt.speech import say_text
 from autogpt.spinner import Spinner
@@ -51,14 +49,11 @@ class Agent:
     
     def __init__(
         self,
-        ai_name,
-        ai_role,
-        ai_goals,
+        ai_config: AIConfig,
         memory,
         full_message_history,
         next_action_count,
         command_registry,
-        config,
         system_prompt,
         triggering_prompt,
         command_name,
@@ -69,14 +64,11 @@ class Agent:
         agents: dict[int, tuple[str, list[dict[str, str]], str]],
     ):
         self.cfg = cfg
-        self.ai_name = ai_name
-        self.ai_role = ai_role
-        self.ai_goals = ai_goals
+        self.ai_config = ai_config
         self.memory = memory
         self.full_message_history = full_message_history
         self.next_action_count = next_action_count
         self.command_registry = command_registry
-        self.config = config
         self.system_prompt = system_prompt
         self.triggering_prompt = triggering_prompt
         self.command_name = command_name
@@ -133,7 +125,7 @@ class Agent:
                 # Get command name and arguments
                 try:
                     print_assistant_thoughts(
-                        self.ai_name, assistant_reply_json, cfg.speak_mode
+                        self.ai_config.ai_name, assistant_reply_json
                     )
                     command_name, arguments = get_command(assistant_reply_json)
                     if cfg.speak_mode:
@@ -198,7 +190,7 @@ class Agent:
                     self.command_registry,
                     command_name,
                     arguments,
-                    self.config.prompt_generator,
+                    self.ai_config.prompt_generator,
                     cfg,
                 )
                 result = f"Command {command_name} returned: " f"{command_result}"
@@ -253,7 +245,7 @@ class Agent:
         Returns:
             str: A feedback response generated using the provided thoughts dictionary.
         """
-        ai_role = self.config.ai_role
+        ai_role = self.ai_config.ai_role
 
         feedback_prompt = f"Below is a message from an AI agent with the role of {ai_role}. Please review the provided Thought, Reasoning, Plan, and Criticism. If these elements accurately contribute to the successful execution of the assumed role, respond with the letter 'Y' followed by a space, and then explain why it is effective. If the provided information is not suitable for achieving the role's objectives, please provide one or more sentences addressing the issue and suggesting a resolution."
         reasoning = thoughts.get("reasoning", "")
@@ -267,6 +259,7 @@ class Agent:
         )
 
     def single_step(self, command_name: str, arguments: str):
+        self.ai_config.command_registry = self.command_registry
         # Send message to AI, get response
         self.user_input = (
             self.arguments if command_name == "human_feedback" else "GENERATE NEXT COMMAND JSON"
@@ -287,13 +280,27 @@ class Agent:
         elif command_name == "human_feedback":
             result = f"Human feedback: {self.user_input}"
         else:
-            result = (
-                f"Command {command_name} returned: "
-                f"{execute_command(command_name or '', arguments, self.cfg)}"
+            for plugin in self.cfg.plugins:
+                if not plugin.can_handle_pre_command():
+                    continue
+                command_name, arguments = plugin.pre_command(
+                    command_name, arguments
+                )
+            command_result = execute_command(
+                self.command_registry,
+                command_name,
+                arguments,
+                self.ai_config.prompt_generator,
+                self.cfg,
             )
+            result = f"Command {command_name} returned: " f"{command_result}"
+
+            for plugin in self.cfg.plugins:
+                if not plugin.can_handle_post_command():
+                    continue
+                result = plugin.post_command(command_name, result)
             if self.next_action_count > 0:
                 self.next_action_count -= 1
-
         memory_to_add = (
             f"Assistant Reply: {self.assistant_reply} "
             f"\nResult: {result} "
@@ -338,7 +345,7 @@ class Agent:
             # validate_json(self.assistant_reply_json, 'llm_response_format_1')
             # Get command name and arguments
             try:
-                log, thoughts = print_assistant_thoughts(self.ai_name, self.assistant_reply_json)
+                log, thoughts = print_assistant_thoughts(self.ai_config.ai_name, self.assistant_reply_json)
                 godmode_log += log
                 c, self.arguments = get_command(self.assistant_reply_json) # type: ignore
                 self.command_name = c or "None"
@@ -347,8 +354,8 @@ class Agent:
                 godmode_log += "Error: \n" + str(e)
         
         # upload log
-        ai_info = f"You are {self.ai_name}, {self.ai_role}\nGOALS:\n\n"
-        for i, goal in enumerate(self.ai_goals):
+        ai_info = f"You are {self.ai_config.ai_name}, {self.ai_config.ai_role}\nGOALS:\n\n"
+        for i, goal in enumerate(self.ai_config.ai_goals):
             ai_info += f"{i+1}. {goal}\n"
 
         upload_log(ai_info + "\n\n" + memory_to_add + "\n\n" + godmode_log, self.agent_id)

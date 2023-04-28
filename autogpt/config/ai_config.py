@@ -13,6 +13,7 @@ import distro
 import yaml
 
 from autogpt.prompts.generator import PromptGenerator
+from autogpt.prompts.prompt import build_default_prompt_generator
 
 # Soon this will go in a folder where it remembers more stuff about the run(s)
 SAVE_FILE = str(Path(os.getcwd()) / "ai_settings.yaml")
@@ -53,7 +54,7 @@ class AIConfig:
         self.ai_role = ai_role
         self.ai_goals = ai_goals
         self.api_budget = api_budget
-        self.prompt_generator = None
+        self.prompt_generator = build_default_prompt_generator()
         self.command_registry = None
 
     @staticmethod
@@ -127,21 +128,20 @@ class AIConfig:
         )
 
         from autogpt.config import Config
-        from autogpt.prompts.prompt import build_default_prompt_generator
 
-        cfg = Config()
+        global_config = Config()
         if prompt_generator is None:
             prompt_generator = build_default_prompt_generator()
         prompt_generator.goals = self.ai_goals
         prompt_generator.name = self.ai_name
         prompt_generator.role = self.ai_role
         prompt_generator.command_registry = self.command_registry
-        for plugin in cfg.plugins:
+        for plugin in global_config.plugins:
             if not plugin.can_handle_post_prompt():
                 continue
             prompt_generator = plugin.post_prompt(prompt_generator)
 
-        if cfg.execute_local_commands:
+        if global_config.execute_local_commands:
             # add OS info to prompt
             os_name = platform.system()
             os_info = (

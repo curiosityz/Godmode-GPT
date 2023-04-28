@@ -5,10 +5,10 @@ import openai
 from autogpt.config import Config
 from autogpt.logs import logger
 from autogpt.modelsinfo import COSTS
-from autogpt.singleton import Singleton
+# from autogpt.singleton import Singleton
 
 
-class ApiManager(metaclass=Singleton):
+class ApiManager():
     def __init__(self):
         self.total_prompt_tokens = 0
         self.total_completion_tokens = 0

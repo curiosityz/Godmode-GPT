@@ -5,6 +5,7 @@ import logging
 import time
 import traceback
 from uuid import uuid4
+from autogpt.commands.command import CommandRegistry
 from autogpt.config.ai_config import AIConfig
 from autogpt.memory import get_memory
 import autogpt.chat as chat
@@ -42,6 +43,16 @@ global_config = Config()
 START = "###start###"
 
 
+command_registry = CommandRegistry()
+command_registry.import_commands("autogpt.commands.analyze_code")
+command_registry.import_commands("autogpt.commands.audio_text")
+command_registry.import_commands("autogpt.commands.file_operations")
+command_registry.import_commands("autogpt.commands.google_search")
+command_registry.import_commands("autogpt.commands.improve_code")
+command_registry.import_commands("autogpt.commands.twitter")
+command_registry.import_commands("autogpt.commands.write_tests")
+command_registry.import_commands("autogpt.app")
+
 def new_interact(
     cfg: Config,
     ai_config: AIConfig,
@@ -53,6 +64,7 @@ def new_interact(
     full_message_history=[],  # TODO: fetch from Datastore
 ):
     key = client.key("Agent", agent_id)
+    ai_config.command_registry = command_registry
 
     logger.set_level(logging.DEBUG if cfg.debug_mode else logging.INFO)
     system_prompt = ai_config.construct_full_prompt()
@@ -70,10 +82,9 @@ def new_interact(
     # limit to 100 entries
     full_message_history = full_message_history[-100:]
 
+
     agent = Agent(
-        ai_name=ai_config.ai_name,
-        ai_role=ai_config.ai_role,
-        ai_goals=ai_config.ai_goals,
+        ai_config=ai_config,
         agent_id=agent_id,
         full_message_history=full_message_history,
         command_name=command_name,
@@ -85,6 +96,7 @@ def new_interact(
         memory=memory,
         next_action_count=next_action_count,
         cfg=cfg,
+        command_registry=command_registry,
     )
 
     (
@@ -139,9 +151,9 @@ def new_interact(
 
         entity.update(
             {
-                "ai_name": agent.ai_name,
-                "ai_role": agent.ai_role,
-                "ai_goals": agent.ai_goals,
+                "ai_name": agent.ai_config.ai_name,
+                "ai_role": agent.ai_config.ai_role,
+                "ai_goals": agent.ai_config.ai_goals,
                 "agent_id": agent.agent_id,
                 "full_message_history": json.dumps(agent.full_message_history),
                 "command_name": agent.command_name,

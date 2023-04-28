@@ -13,7 +13,7 @@ from colorama import Fore, Style
 from autogpt.singleton import Singleton
 from autogpt.speech import say_text
 from autogpt.utils import send_chat_message_to_user
-from autogpt.config import Config, Singleton
+from autogpt.config import Config
 
 global_config = Config()
 
@@ -30,7 +30,7 @@ class Logger(metaclass=Singleton):
         this_files_dir_path = os.path.dirname(__file__)
         log_dir = os.path.join(this_files_dir_path, "../logs")
         if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
+            os.makedirs(log_dir, exist_ok=True)
 
         log_file = "activity.log"
         error_file = "error.log"

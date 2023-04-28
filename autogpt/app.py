@@ -2,7 +2,7 @@
 import json
 from typing import Dict, List, NoReturn, Union
 
-from autogpt.agent.agent_manager import AgentManager
+from autogpt.agent_manager import AgentManager
 from autogpt.commands.command import CommandRegistry, command
 from autogpt.commands.web_requests import scrape_links, scrape_text
 from autogpt.config import Config
@@ -95,6 +95,7 @@ def execute_command(
     command_name: str,
     arguments,
     prompt: PromptGenerator,
+    cfg: Config,
 ):
     """Execute the command and return the result
 
@@ -110,13 +111,13 @@ def execute_command(
 
         # If the command is found, call it with the provided arguments
         if cmd:
-            return cmd(**arguments)
+            return cmd(**arguments, cfg=cfg)
 
         # TODO: Remove commands below after they are moved to the command registry.
         command_name = map_command_synonyms(command_name.lower())
 
         if command_name == "memory_add":
-            return get_memory(CFG).add(arguments["string"])
+            return get_memory(cfg).add(arguments["string"])
 
         # TODO: Change these to take in a file rather than pasted code, if
         # non-file is given, return instructions "Input should be a python
@@ -143,7 +144,7 @@ def execute_command(
     "get_text_summary", "Get text summary", '"url": "<url>", "question": "<question>"'
 )
 @validate_url
-def get_text_summary(url: str, question: str) -> str:
+def get_text_summary(url: str, question: str, cfg: Config) -> str:
     """Return the results of a Google search
 
     Args:

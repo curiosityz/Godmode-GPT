@@ -15,6 +15,8 @@ from autogpt.config import Config
 from autogpt.spinner import Spinner
 from autogpt.utils import readable_file_size
 
+global_config = Config()
+
 def split_file(
     content: str, max_length: int = 4000, overlap: int = 0
 ) -> Generator[str, None, None]:
@@ -184,7 +186,7 @@ def search_files(agent_id):
             if file.startswith("."):
                 continue
             relative_path = os.path.relpath(
-                os.path.join(root, file), CFG.workspace_path
+                os.path.join(root, file), global_config.workspace_path
             )
             found_files.append(relative_path)
 
@@ -195,7 +197,7 @@ def search_files(agent_id):
     "download_file",
     "Download File",
     '"url": "<url>", "filename": "<filename>"',
-    CFG.allow_downloads,
+    global_config.allow_downloads,
     "Error: You do not have user authorization to download files locally.",
 )
 def download_file(url, filename):

@@ -194,12 +194,14 @@ def create_chat_completion(
     return resp
 
 
-def create_embedding_with_ada(text: str, cfg: Config) -> Optional[List]:
+def create_embedding_with_ada(text: str, cfg: Config) -> List[float]:
     """Create a embedding with text-ada-002 using the OpenAI SDK"""
+    model = "text-embedding-ada-002"
+    text = text.replace("\n", " ")
     try:
         return openai.Embedding.create(
             input=[text], # type: ignore
-            model="text-embedding-ada-002",
+            model=model,
             api_key=cfg.openai_api_key,
         )["data"][0]["embedding"]
     except RateLimitError as e:
@@ -209,32 +211,32 @@ def create_embedding_with_ada(text: str, cfg: Config) -> Optional[List]:
         print("API ERROR", e)
         raise e
 
-# def get_ada_embedding(text: str) -> List[float]:
-#     """Get an embedding from the ada model.
+def get_ada_embedding(text: str, cfg: Config) -> List[float]:
+    """Get an embedding from the ada model.
 
-#     Args:
-#         text (str): The text to embed.
+    Args:
+        text (str): The text to embed.
 
-#     Returns:
-#         List[float]: The embedding.
-#     """
-#     cfg = Config()
-#     model = "text-embedding-ada-002"
-#     text = text.replace("\n", " ")
+    Returns:
+        List[float]: The embedding.
+    """
+    return create_embedding_with_ada(text, cfg)
 
-#     if cfg.use_azure:
-#         kwargs = {"engine": cfg.get_azure_deployment_id_for_model(model)}
-#     else:
-#         kwargs = {"model": model}
+    cfg = Config()
 
-#     embedding = create_embedding(text, **kwargs)
-#     api_manager = ApiManager()
-#     api_manager.update_cost(
-#         prompt_tokens=embedding.usage.prompt_tokens,
-#         completion_tokens=0,
-#         model=model,
-#     )
-#     return embedding["data"][0]["embedding"]
+    if cfg.use_azure:
+        kwargs = {"engine": cfg.get_azure_deployment_id_for_model(model)}
+    else:
+        kwargs = {"model": model}
+
+    embedding = create_embedding(text, **kwargs)
+    api_manager = ApiManager()
+    api_manager.update_cost(
+        prompt_tokens=embedding.usage.prompt_tokens,
+        completion_tokens=0,
+        model=model,
+    )
+    return embedding["data"][0]["embedding"]
 
 
 # @retry_openai_api()

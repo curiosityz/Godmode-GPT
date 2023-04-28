@@ -1,7 +1,7 @@
 FROM python:3.11-slim-bullseye
 
 ARG BUILD_TYPE=dev
-RUN apt-get install -y curl jq wget git
+RUN apt-get update && apt-get install -y curl jq wget
 
 WORKDIR /app
 COPY requirements-docker.txt /app

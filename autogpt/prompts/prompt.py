@@ -1,14 +1,5 @@
-from colorama import Fore
-
-from autogpt.api_manager import ApiManager
-from autogpt.config.ai_config import AIConfig
-from autogpt.config.config import Config
-from autogpt.logs import logger
 from autogpt.prompts.generator import PromptGenerator
-from autogpt.setup import prompt_user
-from autogpt.utils import clean_input
 
-global_config = Config()
 
 DEFAULT_TRIGGERING_PROMPT = (
     "Determine which next command to use, and respond using the format specified above:"
@@ -78,13 +69,3 @@ def build_default_prompt_generator() -> PromptGenerator:
     prompt_generator.add_performance_evaluation("Write all code to a file.")
     return prompt_generator
 
-
-def construct_main_ai_config() -> AIConfig:
-    """Construct the prompt for the AI to respond to
-
-    Returns:
-        str: The prompt string
-    """
-    config = AIConfig.load(global_config.ai_settings_file)
-
-    return config

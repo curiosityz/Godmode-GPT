@@ -1,8 +1,6 @@
 """Base class for memory providers."""
 import abc
 
-from autogpt.singleton import AbstractSingleton
-
 
 class MemoryProvider():
     @abc.abstractmethod
