@@ -50,7 +50,7 @@ def split_file(
 
 
 @command("read_file", "Read file", '"filename": "<filename>"')
-def read_file(agent_id, filename) -> str:
+def read_file(cfg, filename, **kwargs) -> str:
     """Read a file and return the contents
 
     Args:
@@ -60,7 +60,7 @@ def read_file(agent_id, filename) -> str:
         str: The contents of the file
     """
     try:
-        return get_file(filename, agent_id)
+        return get_file(filename, cfg.agent_id)
     except Exception as e:
         return "Error: " + str(e)
 
@@ -100,7 +100,7 @@ def ingest_file(
 
 
 @command("write_to_file", "Write to file", '"filename": "<filename>", "text": "<text>"')
-def write_to_file(agent_id, filename, text):
+def write_to_file(cfg: Config, filename, text, **kwargs):
     """Write text to a file
 
     Args:
@@ -113,7 +113,7 @@ def write_to_file(agent_id, filename, text):
 
     """Write text to a file"""
     try:
-        write_file(text, filename, agent_id)
+        write_file(text, filename, cfg.agent_id)
         return "File written to successfully."
     except Exception as e:
         return "Error: " + str(e)
@@ -122,7 +122,7 @@ def write_to_file(agent_id, filename, text):
 @command(
     "append_to_file", "Append to file", '"filename": "<filename>", "text": "<text>"'
 )
-def append_to_file(agent_id, filename, text: str):
+def append_to_file(cfg, filename, text: str, **kwargs):
     """Append text to a file
 
     Args:
@@ -136,8 +136,8 @@ def append_to_file(agent_id, filename, text: str):
 
     """Append text to a file"""
     try:
-        prevtxt = get_file(filename, agent_id)
-        write_file(prevtxt + "\n" + text, filename, agent_id)
+        prevtxt = get_file(filename, cfg.agent_id)
+        write_file(prevtxt + "\n" + text, filename, cfg.agent_id)
 
         return "Text appended successfully."
     except Exception as e:
@@ -145,7 +145,7 @@ def append_to_file(agent_id, filename, text: str):
 
 
 @command("delete_file", "Delete file", '"filename": "<filename>"')
-def delete_file(filename: str) -> str:
+def delete_file(filename: str, **kwargs) -> str:
     """Delete a file
 
     Args:
@@ -166,7 +166,7 @@ def delete_file(filename: str) -> str:
 
 
 @command("search_files", "Search Files", '"directory": "<directory>"')
-def search_files(agent_id):
+def search_files(cfg, **kwargs):
     """Search for files in a directory
 
     Args:
@@ -200,7 +200,7 @@ def search_files(agent_id):
     global_config.allow_downloads,
     "Error: You do not have user authorization to download files locally.",
 )
-def download_file(url, filename):
+def download_file(url, filename, **kwargs):
     """Downloads a file
     Args:
         url (str): URL of the file to download

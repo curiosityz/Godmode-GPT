@@ -54,7 +54,7 @@ class AIConfig:
         self.ai_role = ai_role
         self.ai_goals = ai_goals
         self.api_budget = api_budget
-        self.prompt_generator = build_default_prompt_generator()
+        self.prompt_generator = None
         self.command_registry = None
 
     @staticmethod
@@ -160,4 +160,6 @@ class AIConfig:
             full_prompt += f"\nIt takes money to let you run. Your API budget is ${self.api_budget:.3f}"
         self.prompt_generator = prompt_generator
         full_prompt += f"\n\n{prompt_generator.generate_prompt_string()}"
+        print("PROMPT:"
+              f"\n{full_prompt}")
         return full_prompt

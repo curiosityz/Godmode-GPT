@@ -128,6 +128,8 @@ def create_chat_completion(
     t0 = time.time()
     if temperature is None:
         temperature = cfg.temperature
+
+    print("TEMP", temperature)
     response = None
     num_retries = 1
     if cfg.debug_mode:

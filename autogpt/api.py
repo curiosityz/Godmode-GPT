@@ -64,7 +64,13 @@ def new_interact(
     full_message_history=[],  # TODO: fetch from Datastore
 ):
     key = client.key("Agent", agent_id)
+    try:
+        prev_agent = client.get(key) or {}
+    except:
+        prev_agent = {}
+
     ai_config.command_registry = command_registry
+    print(command_registry.commands)
 
     logger.set_level(logging.DEBUG if cfg.debug_mode else logging.INFO)
     system_prompt = ai_config.construct_full_prompt()
@@ -90,7 +96,7 @@ def new_interact(
         command_name=command_name,
         arguments=arguments,
         assistant_reply=assistant_reply,
-        agents={},
+        agents=prev_agent.get("agents", {}),
         triggering_prompt=triggering_prompt,
         system_prompt=system_prompt,
         memory=memory,
@@ -130,8 +136,7 @@ def new_interact(
             ),
         )
 
-        prev = client.get(key) or {}
-        tasks = prev.get("tasks", [])
+        tasks = prev_agent.get("tasks", [])
         # update the result for the last task, if it exists
         if len(tasks) > 0:
             lastTask: datastore.Entity = tasks[-1]

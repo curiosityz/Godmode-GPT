@@ -16,7 +16,7 @@ CFG = Config()
     CFG.huggingface_audio_to_text_model,
     "Configure huggingface_audio_to_text_model.",
 )
-def read_audio_from_file(filename: str) -> str:
+def read_audio_from_file(filename: str, **kwargs) -> str:
     """
     Convert audio to text.
 

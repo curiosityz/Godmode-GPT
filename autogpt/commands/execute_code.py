@@ -13,7 +13,7 @@ CFG = Config()
 
 
 @command("execute_python_file", "Execute Python File", '"filename": "<filename>"')
-def execute_python_file(filename: str) -> str:
+def execute_python_file(filename: str, **kwargs) -> str:
     """Execute a Python file in a Docker container and return the output
 
     Args:
@@ -103,7 +103,7 @@ def execute_python_file(filename: str) -> str:
     " shell commands, EXECUTE_LOCAL_COMMANDS must be set to 'True' "
     "in your config. Do not attempt to bypass the restriction.",
 )
-def execute_shell(command_line: str) -> str:
+def execute_shell(command_line: str, **kwargs) -> str:
     """Execute a shell command and return the output
 
     Args:
@@ -138,7 +138,7 @@ def execute_shell(command_line: str) -> str:
     " shell commands, EXECUTE_LOCAL_COMMANDS must be set to 'True' "
     "in your config. Do not attempt to bypass the restriction.",
 )
-def execute_shell_popen(command_line) -> str:
+def execute_shell_popen(command_line, **kwargs) -> str:
     """Execute a shell command with Popen and returns an english description
     of the event and the process id
 

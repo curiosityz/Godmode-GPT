@@ -13,7 +13,6 @@ from autogpt.speech import say_text
 from autogpt.url_utils.validators import validate_url
 
 CFG = Config()
-AGENT_MANAGER = AgentManager()
 
 
 def is_valid_int(value: str) -> bool:
@@ -107,6 +106,7 @@ def execute_command(
         str: The result of the command
     """
     try:
+        print(command_name, command_registry.commands)
         cmd = command_registry.commands.get(command_name)
 
         # If the command is found, call it with the provided arguments
@@ -125,7 +125,8 @@ def execute_command(
         elif command_name == "task_complete":
             return "Task complete."
         else:
-            for command in prompt.commands:
+            print(f"trying {prompt.command_registry.commands}")
+            for command in prompt.command_registry.commands:
                 if (
                     command_name == command["label"].lower()
                     or command_name == command["name"].lower()
@@ -144,7 +145,7 @@ def execute_command(
     "get_text_summary", "Get text summary", '"url": "<url>", "question": "<question>"'
 )
 @validate_url
-def get_text_summary(url: str, question: str, cfg: Config) -> str:
+def get_text_summary(url: str, question: str, cfg: Config, **kwargs) -> str:
     """Return the results of a Google search
 
     Args:
@@ -161,7 +162,7 @@ def get_text_summary(url: str, question: str, cfg: Config) -> str:
 
 @command("get_hyperlinks", "Get text summary", '"url": "<url>"')
 @validate_url
-def get_hyperlinks(url: str) -> Union[str, List[str]]:
+def get_hyperlinks(url: str, **kwargs) -> Union[str, List[str]]:
     """Return the results of a Google search
 
     Args:
@@ -184,7 +185,7 @@ def shutdown() -> NoReturn:
     "Start GPT Agent",
     '"name": "<name>", "task": "<short_task_desc>", "prompt": "<prompt>"',
 )
-def start_agent(name: str, task: str, prompt: str, model=CFG.fast_llm_model) -> str:
+def start_agent(name: str, task: str, prompt: str, agent_manager: AgentManager, cfg: Config, model=CFG.fast_llm_model, **kwargs) -> str:
     """Start an agent with a given name, task, and prompt
 
     Args:
@@ -205,23 +206,23 @@ def start_agent(name: str, task: str, prompt: str, model=CFG.fast_llm_model) -> 
     # Create agent
     if CFG.speak_mode:
         say_text(agent_intro, 1)
-    key, ack = AGENT_MANAGER.create_agent(task, first_message, model)
+    key, ack = agent_manager.create_agent(task, first_message, model, cfg)
 
     if CFG.speak_mode:
         say_text(f"Hello {voice_name}. Your task is as follows. {task}.")
 
     # Assign task (prompt), get response
-    agent_response = AGENT_MANAGER.message_agent(key, prompt)
+    agent_response = agent_manager.message_agent(key, prompt, cfg)
 
     return f"Agent {name} created with key {key}. First response: {agent_response}"
 
 
 @command("message_agent", "Message GPT Agent", '"key": "<key>", "message": "<message>"')
-def message_agent(key: str, message: str) -> str:
+def message_agent(key: str, message: str, agent_manager: AgentManager, cfg: Config, **kwargs) -> str:
     """Message an agent with a given key and message"""
     # Check if the key is a valid integer
     if is_valid_int(key):
-        agent_response = AGENT_MANAGER.message_agent(int(key), message)
+        agent_response = agent_manager.message_agent(int(key), message, cfg=cfg)
     else:
         return "Invalid key, must be an integer."
 
@@ -232,19 +233,19 @@ def message_agent(key: str, message: str) -> str:
 
 
 @command("list_agents", "List GPT Agents", "")
-def list_agents() -> str:
+def list_agents(agent_manager: AgentManager, cfg: Config, **kwargs) -> str:
     """List all agents
 
     Returns:
         str: A list of all agents
     """
     return "List of agents:\n" + "\n".join(
-        [str(x[0]) + ": " + x[1] for x in AGENT_MANAGER.list_agents()]
+        [str(x[0]) + ": " + x[1] for x in agent_manager.list_agents(cfg)]
     )
 
 
 @command("delete_agent", "Delete GPT Agent", '"key": "<key>"')
-def delete_agent(key: str) -> str:
+def delete_agent(key: str, agent_manager: AgentManager, cfg: Config) -> str:
     """Delete an agent with a given key
 
     Args:
@@ -253,5 +254,5 @@ def delete_agent(key: str) -> str:
     Returns:
         str: A message indicating whether the agent was deleted or not
     """
-    result = AGENT_MANAGER.delete_agent(key)
+    result = agent_manager.delete_agent(key)
     return f"Agent {key} deleted." if result else f"Agent {key} does not exist."

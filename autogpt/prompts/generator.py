@@ -143,6 +143,7 @@ class PromptGenerator:
             str: The generated prompt string.
         """
         formatted_response_format = json.dumps(self.response_format, indent=4)
+        print("GEN COMMANDS", self.commands)
         return (
             f"Constraints:\n{self._generate_numbered_list(self.constraints)}\n\n"
             "Commands:\n"

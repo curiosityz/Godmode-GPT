@@ -12,7 +12,7 @@ from autogpt.llm_utils import call_ai_function
     "Get Improved Code",
     '"suggestions": "<list_of_suggestions>", "code": "<full_code_string>"',
 )
-def improve_code(suggestions: list[str], code: str, cfg: Config) -> str:
+def improve_code(suggestions: list[str], code: str, cfg: Config, **kwargs) -> str:
     """
     A function that takes in code and suggestions and returns a response from create
       chat completion api call.

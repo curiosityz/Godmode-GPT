@@ -15,7 +15,7 @@ class AgentManager():
 
     def __init__(self, agents={}):
         self.next_key = 0
-        self.agents = {}  # key, (task, full_message_history, model)
+        self.agents = agents  # key, (task, full_message_history, model)
         self.cfg = Config()
 
     # Create new GPT agent
@@ -122,7 +122,7 @@ class AgentManager():
 
         return agent_reply
 
-    def list_agents(self) -> list[tuple[str | int, str]]:
+    def list_agents(self, cfg: Config) -> list[tuple[str | int, str]]:
         """Return a list of all agents
 
         Returns:

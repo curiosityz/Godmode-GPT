@@ -16,7 +16,7 @@ global_config = Config()
     "Configure github_username and github_api_key.",
 )
 @validate_url
-def clone_repository(repository_url: str, clone_path: str) -> str:
+def clone_repository(repository_url: str, clone_path: str, **kwargs) -> str:
     """Clone a GitHub repository locally.
 
     Args:

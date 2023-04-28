@@ -11,7 +11,7 @@ from autogpt.commands.command import command
     "Send Tweet",
     '"tweet_text": "<tweet_text>"',
 )
-def send_tweet(tweet_text: str) -> str:
+def send_tweet(tweet_text: str, **kwargs) -> str:
     """
       A function that takes in a string and returns a response from create chat
         completion api call.

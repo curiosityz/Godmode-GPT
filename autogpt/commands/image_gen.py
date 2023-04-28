@@ -14,7 +14,7 @@ global_config = Config()
 
 
 @command("generate_image", "Generate Image", '"prompt": "<prompt>"', global_config.image_provider)
-def generate_image(prompt: str, size: int = 256) -> str:
+def generate_image(prompt: str, size: int = 256, **kwargs) -> str:
     """Generate an image from a prompt.
 
     Args:

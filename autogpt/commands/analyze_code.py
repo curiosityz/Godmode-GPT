@@ -10,7 +10,7 @@ from autogpt.llm_utils import call_ai_function
     "Analyze Code",
     '"code": "<full_code_string>"',
 )
-def analyze_code(code: str, cfg: Config) -> list[str]:
+def analyze_code(code: str, cfg, **kwargs) -> list[str]:
     """
     A function that takes in a string and returns a response from create chat
       completion api call.
