@@ -60,7 +60,7 @@ def get_command(response_json: Dict):
         if "name" not in command:
             return "Error:", "Missing 'name' field in 'command' object"
 
-        command_name = command["name"]
+        command_name: str = str(command["name"])
 
         # Use an empty dictionary if 'args' field is not present in 'command' object
         arguments = command.get("args", {})
@@ -81,9 +81,11 @@ def map_command_synonyms(command_name: str):
         ("write_file", "write_to_file"),
         ("create_file", "write_to_file"),
         ("search", "google"),
+        ("search_google", "google"),
+        ("google_search", "google"),
     ]
     for seen_command, actual_command_name in synonyms:
-        if command_name == seen_command:
+        if command_name.lower() == seen_command:
             return actual_command_name
     return command_name
 
@@ -120,7 +122,7 @@ def execute_command(
         # non-file is given, return instructions "Input should be a python
         # filepath, write your code to file and try again
         elif command_name == "task_complete":
-            shutdown()
+            return "Task complete."
         else:
             for command in prompt.commands:
                 if (
@@ -152,7 +154,7 @@ def get_text_summary(url: str, question: str) -> str:
         str: The summary of the text
     """
     text = scrape_text(url)
-    summary = summarize_text(url, text, question)
+    summary = summarize_text(url, text, question, cfg)
     return f""" "Result" : {summary}"""
 
 

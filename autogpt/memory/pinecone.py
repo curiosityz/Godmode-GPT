@@ -1,16 +1,27 @@
 import pinecone
 from colorama import Fore, Style
+from autogpt.api_utils import CRITICAL, ERROR, print_log
 
 from autogpt.llm_utils import get_ada_embedding
 from autogpt.logs import logger
-from autogpt.memory.base import MemoryProviderSingleton
+from autogpt.memory.base import MemoryProvider
+from autogpt.config import Config
+
+global_config = Config()
+
+pinecone_api_key = global_config.pinecone_api_key
+pinecone_region = global_config.pinecone_region
+if pinecone_api_key and pinecone_region:
+    pinecone.init(api_key=pinecone_api_key, environment=pinecone_region)
+else:
+    print("Pinecone API key and region not set. " "Please set them in the config file.")
 
 
-class PineconeMemory(MemoryProviderSingleton):
+class PineconeMemory(MemoryProvider):
+    cfg: Config
+
     def __init__(self, cfg):
-        pinecone_api_key = cfg.pinecone_api_key
-        pinecone_region = cfg.pinecone_region
-        pinecone.init(api_key=pinecone_api_key, environment=pinecone_region)
+        self.cfg = cfg
         dimension = 1536
         metric = "cosine"
         pod_type = "p1"
@@ -24,29 +35,28 @@ class PineconeMemory(MemoryProviderSingleton):
         try:
             pinecone.whoami()
         except Exception as e:
-            logger.typewriter_log(
-                "FAILED TO CONNECT TO PINECONE",
-                Fore.RED,
-                Style.BRIGHT + str(e) + Style.RESET_ALL,
-            )
-            logger.double_check(
-                "Please ensure you have setup and configured Pinecone properly for use."
-                + f"You can check out {Fore.CYAN + Style.BRIGHT}"
-                "https://github.com/Torantulino/Auto-GPT#-pinecone-api-key-setup"
-                f"{Style.RESET_ALL} to ensure you've set up everything correctly."
-            )
-            exit(1)
+            print_log("Failed to connect to Pinecone", severity=CRITICAL, errorMsg=e)
+            raise e
 
-        if table_name not in pinecone.list_indexes():
-            pinecone.create_index(
-                table_name, dimension=dimension, metric=metric, pod_type=pod_type
-            )
+        # if table_name not in pinecone.list_indexes():
+        #     pinecone.create_index(
+        #         table_name, dimension=dimension, metric=metric, pod_type=pod_type
+        #     )
         self.index = pinecone.Index(table_name)
 
     def add(self, data):
-        vector = get_ada_embedding(data)
+        vector = get_ada_embedding(data, self.cfg)
         # no metadata here. We may wish to change that long term.
-        self.index.upsert([(str(self.vec_num), vector, {"raw_text": data})])
+        data = [(str(self.vec_num), vector, {"raw_text": data})]
+        namespace = self.cfg.agent_id
+        try:
+            self.index.upsert(
+                data,
+                namespace=namespace,
+            )
+        except Exception as e:
+            print_log("Pinecone upsert error", severity=CRITICAL, errorMsg=e, pine_data=data, pine_namespace=namespace)
+            raise e
         _text = f"Inserting data into memory at index: {self.vec_num}:\n data: {data}"
         self.vec_num += 1
         return _text
@@ -55,7 +65,7 @@ class PineconeMemory(MemoryProviderSingleton):
         return self.get_relevant(data, 1)
 
     def clear(self):
-        self.index.delete(deleteAll=True)
+        self.index.delete(deleteAll=True, namespace=self.cfg.agent_id)
         return "Obliviated"
 
     def get_relevant(self, data, num_relevant=5):
@@ -64,10 +74,19 @@ class PineconeMemory(MemoryProviderSingleton):
         :param data: The data to compare to.
         :param num_relevant: The number of relevant data to return. Defaults to 5
         """
-        query_embedding = get_ada_embedding(data)
-        results = self.index.query(
-            query_embedding, top_k=num_relevant, include_metadata=True
-        )
+        query_embedding = get_ada_embedding(data, self.cfg)
+
+        namespace = self.cfg.agent_id
+        try:
+            results = self.index.query(
+                query_embedding,
+                top_k=num_relevant,
+                include_metadata=True,
+                namespace=namespace,
+            )
+        except Exception as e:
+            print_log("Pinecone query error", severity=CRITICAL, errorMsg=e, pine_query=query_embedding, pine_namespace=namespace)
+            raise e
         sorted_results = sorted(results.matches, key=lambda x: x.score)
         return [str(item["metadata"]["raw_text"]) for item in sorted_results]
 

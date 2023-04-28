@@ -16,6 +16,7 @@ _QUEUE_SEMAPHORE = Semaphore(
 
 def say_text(text: str, voice_index: int = 0) -> None:
     """Speak the given text using the given voice index"""
+    return
     cfg = Config()
     default_voice_engine, voice_engine = _get_voice_engine(cfg)
 

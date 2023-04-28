@@ -8,7 +8,7 @@ from autogpt.llm_utils import get_ada_embedding
 from autogpt.memory.base import MemoryProviderSingleton
 
 
-class MilvusMemory(MemoryProviderSingleton):
+class MilvusMemory(MemoryProvider):
     """Milvus memory storage provider."""
 
     def __init__(self, cfg: Config) -> None:

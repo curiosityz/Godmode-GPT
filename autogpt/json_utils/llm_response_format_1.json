@@ -9,7 +9,8 @@
                 "reasoning": {"type": "string"},
                 "plan": {"type": "string"},
                 "criticism": {"type": "string"},
-                "speak": {"type": "string"}
+                "speak": {"type": "string"},
+                "relevant_goal": {"type": "string"}
             },
             "required": ["text", "reasoning", "plan", "criticism", "speak"],
             "additionalProperties": false

@@ -8,7 +8,7 @@ from duckduckgo_search import ddg
 from autogpt.commands.command import command
 from autogpt.config import Config
 
-CFG = Config()
+global_config = Config()
 
 
 @command("google", "Google Search", '"query": "<query>"', not CFG.google_api_key)
@@ -60,8 +60,8 @@ def google_official_search(query: str, num_results: int = 8) -> str | list[str]:
 
     try:
         # Get the Google API key and Custom Search Engine ID from the config file
-        api_key = CFG.google_api_key
-        custom_search_engine_id = CFG.custom_search_engine_id
+        api_key = global_config.google_api_key
+        custom_search_engine_id = global_config.custom_search_engine_id
 
         # Initialize the Custom Search API service
         service = build("customsearch", "v1", developerKey=api_key)

@@ -1,6 +1,7 @@
 """File operations for AutoGPT"""
 from __future__ import annotations
 
+from autogpt.api_utils import get_file, list_files, write_file
 import os
 import os.path
 from typing import Generator
@@ -13,35 +14,6 @@ from autogpt.commands.command import command
 from autogpt.config import Config
 from autogpt.spinner import Spinner
 from autogpt.utils import readable_file_size
-
-CFG = Config()
-
-
-def check_duplicate_operation(operation: str, filename: str) -> bool:
-    """Check if the operation has already been performed on the given file
-
-    Args:
-        operation (str): The operation to check for
-        filename (str): The name of the file to check for
-
-    Returns:
-        bool: True if the operation has already been performed on the file
-    """
-    log_content = read_file(CFG.file_logger_path)
-    log_entry = f"{operation}: {filename}\n"
-    return log_entry in log_content
-
-
-def log_operation(operation: str, filename: str) -> None:
-    """Log the file operation to the file_logger.txt
-
-    Args:
-        operation (str): The operation to log
-        filename (str): The name of the file the operation was performed on
-    """
-    log_entry = f"{operation}: {filename}\n"
-    append_to_file(CFG.file_logger_path, log_entry, should_log=False)
-
 
 def split_file(
     content: str, max_length: int = 4000, overlap: int = 0
@@ -76,7 +48,7 @@ def split_file(
 
 
 @command("read_file", "Read file", '"filename": "<filename>"')
-def read_file(filename: str) -> str:
+def read_file(agent_id, filename) -> str:
     """Read a file and return the contents
 
     Args:
@@ -86,11 +58,9 @@ def read_file(filename: str) -> str:
         str: The contents of the file
     """
     try:
-        with open(filename, "r", encoding="utf-8") as f:
-            content = f.read()
-        return content
+        return get_file(filename, agent_id)
     except Exception as e:
-        return f"Error: {str(e)}"
+        return "Error: " + str(e)
 
 
 def ingest_file(
@@ -128,7 +98,7 @@ def ingest_file(
 
 
 @command("write_to_file", "Write to file", '"filename": "<filename>", "text": "<text>"')
-def write_to_file(filename: str, text: str) -> str:
+def write_to_file(agent_id, filename, text):
     """Write text to a file
 
     Args:
@@ -138,23 +108,19 @@ def write_to_file(filename: str, text: str) -> str:
     Returns:
         str: A message indicating success or failure
     """
-    if check_duplicate_operation("write", filename):
-        return "Error: File has already been updated."
+
+    """Write text to a file"""
     try:
-        directory = os.path.dirname(filename)
-        os.makedirs(directory, exist_ok=True)
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write(text)
-        log_operation("write", filename)
+        write_file(text, filename, agent_id)
         return "File written to successfully."
     except Exception as e:
-        return f"Error: {str(e)}"
+        return "Error: " + str(e)
 
 
 @command(
     "append_to_file", "Append to file", '"filename": "<filename>", "text": "<text>"'
 )
-def append_to_file(filename: str, text: str, should_log: bool = True) -> str:
+def append_to_file(agent_id, filename, text: str):
     """Append text to a file
 
     Args:
@@ -165,18 +131,15 @@ def append_to_file(filename: str, text: str, should_log: bool = True) -> str:
     Returns:
         str: A message indicating success or failure
     """
-    try:
-        directory = os.path.dirname(filename)
-        os.makedirs(directory, exist_ok=True)
-        with open(filename, "a") as f:
-            f.write(text)
 
-        if should_log:
-            log_operation("append", filename)
+    """Append text to a file"""
+    try:
+        prevtxt = get_file(filename, agent_id)
+        write_file(prevtxt + "\n" + text, filename, agent_id)
 
         return "Text appended successfully."
     except Exception as e:
-        return f"Error: {str(e)}"
+        return "Error: " + str(e)
 
 
 @command("delete_file", "Delete file", '"filename": "<filename>"')
@@ -189,6 +152,7 @@ def delete_file(filename: str) -> str:
     Returns:
         str: A message indicating success or failure
     """
+    return "File deleted"
     if check_duplicate_operation("delete", filename):
         return "Error: File has already been deleted."
     try:
@@ -200,7 +164,7 @@ def delete_file(filename: str) -> str:
 
 
 @command("search_files", "Search Files", '"directory": "<directory>"')
-def search_files(directory: str) -> list[str]:
+def search_files(agent_id):
     """Search for files in a directory
 
     Args:
@@ -209,7 +173,11 @@ def search_files(directory: str) -> list[str]:
     Returns:
         list[str]: A list of files found in the directory
     """
-    found_files = []
+    """Search for files in a directory"""
+    try:
+        return list_files(agent_id)
+    except Exception as e:
+        return "Error: " + str(e)
 
     for root, _, files in os.walk(directory):
         for file in files:
@@ -236,6 +204,7 @@ def download_file(url, filename):
         url (str): URL of the file to download
         filename (str): Filename to save the file as
     """
+    return
     try:
         directory = os.path.dirname(filename)
         os.makedirs(directory, exist_ok=True)
@@ -269,3 +238,5 @@ def download_file(url, filename):
         return f"Got an HTTP Error whilst trying to download file: {e}"
     except Exception as e:
         return "Error: " + str(e)
+
+

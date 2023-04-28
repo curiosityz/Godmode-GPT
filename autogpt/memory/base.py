@@ -4,7 +4,7 @@ import abc
 from autogpt.singleton import AbstractSingleton
 
 
-class MemoryProviderSingleton(AbstractSingleton):
+class MemoryProvider():
     @abc.abstractmethod
     def add(self, data):
         """Adds to memory"""

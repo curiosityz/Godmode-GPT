@@ -1,6 +1,7 @@
 """A module that contains a function to generate test cases for the submitted code."""
 from __future__ import annotations
 
+from autogpt.config.config import Config
 import json
 
 from autogpt.commands.command import command
@@ -12,7 +13,7 @@ from autogpt.llm_utils import call_ai_function
     "Write Tests",
     '"code": "<full_code_string>", "focus": "<list_of_focus_areas>"',
 )
-def write_tests(code: str, focus: list[str]) -> str:
+def write_tests(code: str, focus: list[str], cfg: Config) -> str:
     """
     A function that takes in code and focus topics and returns a response from create
       chat completion api call.
@@ -34,4 +35,4 @@ def write_tests(code: str, focus: list[str]) -> str:
         " specific areas if required."
     )
 
-    return call_ai_function(function_string, args, description_string)
+    return call_ai_function(function_string, args, description_string, cfg=cfg)

@@ -1,18 +1,19 @@
 """Agent manager for managing GPT agents"""
 from __future__ import annotations
+from typing import Union
 
 from typing import List
 
 from autogpt.config.config import Config
 from autogpt.llm_utils import create_chat_completion
-from autogpt.singleton import Singleton
 from autogpt.types.openai import Message
 
-
-class AgentManager(metaclass=Singleton):
+class AgentManager():
     """Agent manager for managing GPT agents"""
 
-    def __init__(self):
+    agents: dict[int, tuple[str, list[dict[str, str]], str]]
+
+    def __init__(self, agents={}):
         self.next_key = 0
         self.agents = {}  # key, (task, full_message_history, model)
         self.cfg = Config()
@@ -20,7 +21,7 @@ class AgentManager(metaclass=Singleton):
     # Create new GPT agent
     # TODO: Centralise use of create_chat_completion() to globally enforce token limit
 
-    def create_agent(self, task: str, prompt: str, model: str) -> tuple[int, str]:
+    def create_agent(self, task: str, prompt: str, model: str, cfg) -> tuple[int, str]:
         """Create a new agent and return its key
 
         Args:
@@ -43,6 +44,7 @@ class AgentManager(metaclass=Singleton):
         agent_reply = create_chat_completion(
             model=model,
             messages=messages,
+            cfg=cfg,
         )
 
         messages.append({"role": "assistant", "content": agent_reply})
@@ -71,7 +73,7 @@ class AgentManager(metaclass=Singleton):
 
         return key, agent_reply
 
-    def message_agent(self, key: str | int, message: str) -> str:
+    def message_agent(self, key: str | int, message: str, cfg) -> str:
         """Send a message to an agent and return its response
 
         Args:
@@ -97,6 +99,7 @@ class AgentManager(metaclass=Singleton):
         agent_reply = create_chat_completion(
             model=model,
             messages=messages,
+            cfg=cfg,
         )
 
         messages.append({"role": "assistant", "content": agent_reply})

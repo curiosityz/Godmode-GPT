@@ -3,10 +3,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from autogpt.memory.base import MemoryProviderSingleton
+from autogpt.memory.base import MemoryProvider
 
 
-class NoMemory(MemoryProviderSingleton):
+class NoMemory(MemoryProvider):
     """
     A class that does not store any data. This is the default memory provider.
     """

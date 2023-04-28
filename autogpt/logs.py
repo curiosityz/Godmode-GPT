@@ -13,6 +13,9 @@ from colorama import Fore, Style
 from autogpt.singleton import Singleton
 from autogpt.speech import say_text
 from autogpt.utils import send_chat_message_to_user
+from autogpt.config import Config, Singleton
+
+global_config = Config()
 
 
 class Logger(metaclass=Singleton):
@@ -35,9 +38,9 @@ class Logger(metaclass=Singleton):
         console_formatter = AutoGptFormatter("%(title_color)s %(message)s")
 
         # Create a handler for console which simulate typing
-        self.typing_console_handler = TypingConsoleHandler()
-        self.typing_console_handler.setLevel(logging.INFO)
-        self.typing_console_handler.setFormatter(console_formatter)
+        # self.typing_console_handler = TypingConsoleHandler()
+        # self.typing_console_handler.setLevel(logging.INFO)
+        # self.typing_console_handler.setFormatter(console_formatter)
 
         # Create a handler for console without typing simulation
         self.console_handler = ConsoleHandler()
@@ -66,7 +69,7 @@ class Logger(metaclass=Singleton):
         error_handler.setFormatter(error_formatter)
 
         self.typing_logger = logging.getLogger("TYPER")
-        self.typing_logger.addHandler(self.typing_console_handler)
+        # self.typing_logger.addHandler(self.typing_console_handler)
         self.typing_logger.addHandler(self.file_handler)
         self.typing_logger.addHandler(error_handler)
         self.typing_logger.setLevel(logging.DEBUG)
@@ -82,7 +85,7 @@ class Logger(metaclass=Singleton):
     def typewriter_log(
         self, title="", title_color="", content="", speak_text=False, level=logging.INFO
     ):
-        if speak_text and self.speak_mode:
+        if speak_text and global_config.speak_mode:
             say_text(f"{title}. {content}")
 
         send_chat_message_to_user(f"{title}. {content}")
@@ -92,10 +95,8 @@ class Logger(metaclass=Singleton):
                 content = " ".join(content)
         else:
             content = ""
-
-        self.typing_logger.log(
-            level, content, extra={"title": title, "color": title_color}
-        )
+        
+        return title + content + "\n"
 
     def debug(
         self,
@@ -143,26 +144,26 @@ Output stream to console using simulated typing
 """
 
 
-class TypingConsoleHandler(logging.StreamHandler):
-    def emit(self, record):
-        min_typing_speed = 0.05
-        max_typing_speed = 0.01
+# class TypingConsoleHandler(logging.StreamHandler):
+#     def emit(self, record):
+        # min_typing_speed = 0.05
+        # max_typing_speed = 0.01
 
-        msg = self.format(record)
-        try:
-            words = msg.split()
-            for i, word in enumerate(words):
-                print(word, end="", flush=True)
-                if i < len(words) - 1:
-                    print(" ", end="", flush=True)
-                typing_speed = random.uniform(min_typing_speed, max_typing_speed)
-                time.sleep(typing_speed)
-                # type faster after each word
-                min_typing_speed = min_typing_speed * 0.95
-                max_typing_speed = max_typing_speed * 0.95
-            print()
-        except Exception:
-            self.handleError(record)
+        # msg = self.format(record)
+        # try:
+        #     words = msg.split()
+        #     for i, word in enumerate(words):
+        #         print(word, end="", flush=True)
+        #         if i < len(words) - 1:
+        #             print(" ", end="", flush=True)
+        #         typing_speed = random.uniform(min_typing_speed, max_typing_speed)
+        #         # time.sleep(typing_speed)
+        #         # type faster after each word
+        #         min_typing_speed = min_typing_speed * 0.95
+        #         max_typing_speed = max_typing_speed * 0.95
+        #     print()
+        # except Exception:
+        #     self.handleError(record)
 
 
 class ConsoleHandler(logging.StreamHandler):
@@ -205,15 +206,105 @@ def remove_color_codes(s: str) -> str:
 logger = Logger()
 
 
-def print_assistant_thoughts(
-    ai_name: object,
-    assistant_reply_json_valid: object,
-    speak_mode: bool = False,
-) -> None:
+# def print_assistant_thoughts(ai_name, assistant_reply):
+#     """Prints the assistant's thoughts to the console"""
+#     from autogpt.json_fixes.bracket_termination import (
+#         attempt_to_fix_json_by_finding_outermost_brackets,
+#     )
+#     from autogpt.json_fixes.parsing import fix_and_parse_json
+
+#     try:
+#         try:
+#             # Parse and print Assistant response
+#             assistant_reply_json = fix_and_parse_json(assistant_reply)
+#         except json.JSONDecodeError:
+#             logger.error("Error: Invalid JSON in assistant thoughts\n", assistant_reply)
+#             assistant_reply_json = attempt_to_fix_json_by_finding_outermost_brackets(
+#                 assistant_reply
+#             )
+#             if isinstance(assistant_reply_json, str):
+#                 assistant_reply_json = fix_and_parse_json(assistant_reply_json)
+
+#         # Check if assistant_reply_json is a string and attempt to parse
+#         # it into a JSON object
+#         if isinstance(assistant_reply_json, str):
+#             try:
+#                 assistant_reply_json = json.loads(assistant_reply_json)
+#             except json.JSONDecodeError:
+#                 logger.error("Error: Invalid JSON\n", assistant_reply)
+#                 assistant_reply_json = (
+#                     attempt_to_fix_json_by_finding_outermost_brackets(
+#                         assistant_reply_json
+#                     )
+#                 )
+
+#         assistant_thoughts_reasoning = None
+#         assistant_thoughts_plan = None
+#         assistant_thoughts_speak = None
+#         assistant_thoughts_criticism = None
+#         if not isinstance(assistant_reply_json, dict):
+#             assistant_reply_json = {}
+#         assistant_thoughts = assistant_reply_json.get("thoughts", {})
+#         assistant_thoughts_text = assistant_thoughts.get("text")
+
+#         if assistant_thoughts:
+#             assistant_thoughts_reasoning = assistant_thoughts.get("reasoning")
+#             assistant_thoughts_plan = assistant_thoughts.get("plan")
+#             assistant_thoughts_criticism = assistant_thoughts.get("criticism")
+#             assistant_thoughts_speak = assistant_thoughts.get("speak")
+
+#         logger.typewriter_log(
+#             f"{ai_name.upper()} THOUGHTS:", Fore.YELLOW, f"{assistant_thoughts_text}"
+#         )
+#         logger.typewriter_log(
+#             "REASONING:", Fore.YELLOW, f"{assistant_thoughts_reasoning}"
+#         )
+
+#         if assistant_thoughts_plan:
+#             logger.typewriter_log("PLAN:", Fore.YELLOW, "")
+#             # If it's a list, join it into a string
+#             if isinstance(assistant_thoughts_plan, list):
+#                 assistant_thoughts_plan = "\n".join(assistant_thoughts_plan)
+#             elif isinstance(assistant_thoughts_plan, dict):
+#                 assistant_thoughts_plan = str(assistant_thoughts_plan)
+
+#             # Split the input_string using the newline character and dashes
+#             lines = assistant_thoughts_plan.split("\n")
+#             for line in lines:
+#                 line = line.lstrip("- ")
+#                 logger.typewriter_log("- ", Fore.GREEN, line.strip())
+
+#         logger.typewriter_log(
+#             "CRITICISM:", Fore.YELLOW, f"{assistant_thoughts_criticism}"
+#         )
+#         # Speak the assistant's thoughts
+#         if global_config.speak_mode and assistant_thoughts_speak:
+#             say_text(assistant_thoughts_speak)
+#         else:
+#             logger.typewriter_log("SPEAK:", Fore.YELLOW, f"{assistant_thoughts_speak}")
+
+#         return assistant_reply_json
+#     except json.decoder.JSONDecodeError:
+#         logger.error("Error: Invalid JSON\n", assistant_reply)
+#         if global_config.speak_mode:
+#             say_text(
+#                 "I have received an invalid JSON response from the OpenAI API."
+#                 " I cannot ignore this response."
+#             )
+
+#     # All other errors, return "Error: + error message"
+#     except Exception:
+#         call_stack = traceback.format_exc()
+#         logger.error("Error: \n", call_stack)
+
+
+def print_assistant_thoughts(ai_name: str, assistant_reply_json_valid: dict):
+    log = ""
     assistant_thoughts_reasoning = None
     assistant_thoughts_plan = None
     assistant_thoughts_speak = None
     assistant_thoughts_criticism = None
+    assistant_thoughts_relevant_goal = None
 
     assistant_thoughts = assistant_reply_json_valid.get("thoughts", {})
     assistant_thoughts_text = assistant_thoughts.get("text")
@@ -222,12 +313,16 @@ def print_assistant_thoughts(
         assistant_thoughts_plan = assistant_thoughts.get("plan")
         assistant_thoughts_criticism = assistant_thoughts.get("criticism")
         assistant_thoughts_speak = assistant_thoughts.get("speak")
-    logger.typewriter_log(
+        assistant_thoughts_relevant_goal = assistant_thoughts.get("relevant_goal")
+
+    log += logger.typewriter_log(
         f"{ai_name.upper()} THOUGHTS:", Fore.YELLOW, f"{assistant_thoughts_text}"
     )
-    logger.typewriter_log("REASONING:", Fore.YELLOW, f"{assistant_thoughts_reasoning}")
+    log += logger.typewriter_log(
+        "REASONING:", Fore.YELLOW, f"{assistant_thoughts_reasoning}"
+    )
     if assistant_thoughts_plan:
-        logger.typewriter_log("PLAN:", Fore.YELLOW, "")
+        log += logger.typewriter_log("PLAN:", Fore.YELLOW, "")
         # If it's a list, join it into a string
         if isinstance(assistant_thoughts_plan, list):
             assistant_thoughts_plan = "\n".join(assistant_thoughts_plan)
@@ -238,8 +333,19 @@ def print_assistant_thoughts(
         lines = assistant_thoughts_plan.split("\n")
         for line in lines:
             line = line.lstrip("- ")
-            logger.typewriter_log("- ", Fore.GREEN, line.strip())
-    logger.typewriter_log("CRITICISM:", Fore.YELLOW, f"{assistant_thoughts_criticism}")
+            log += logger.typewriter_log("- ", Fore.GREEN, line.strip())
+    log += logger.typewriter_log(
+        "CRITICISM:", Fore.YELLOW, f"{assistant_thoughts_criticism}"
+    )
     # Speak the assistant's thoughts
-    if speak_mode and assistant_thoughts_speak:
+    if global_config.speak_mode and assistant_thoughts_speak:
         say_text(assistant_thoughts_speak)
+
+    return log, {
+        "thoughts": assistant_thoughts_text,
+        "reasoning": assistant_thoughts_reasoning,
+        "plan": assistant_thoughts_plan,
+        "criticism": assistant_thoughts_criticism,
+        "speak": assistant_thoughts_speak,
+        "relevant_goal": assistant_thoughts_relevant_goal,
+    }

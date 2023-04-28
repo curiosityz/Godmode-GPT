@@ -10,7 +10,7 @@ from PIL import Image
 from autogpt.commands.command import command
 from autogpt.config import Config
 
-CFG = Config()
+global_config = Config()
 
 
 @command("generate_image", "Generate Image", '"prompt": "<prompt>"', CFG.image_provider)
@@ -27,10 +27,9 @@ def generate_image(prompt: str, size: int = 256) -> str:
     filename = f"{CFG.workspace_path}/{str(uuid.uuid4())}.jpg"
 
     # DALL-E
-    if CFG.image_provider == "dalle":
-        return generate_image_with_dalle(prompt, filename, size)
-    # HuggingFace
-    elif CFG.image_provider == "huggingface":
+    if global_config.image_provider == "dalle":
+        return generate_image_with_dalle(prompt, filename)
+    elif global_config.image_provider == "sd":
         return generate_image_with_hf(prompt, filename)
     # SD WebUI
     elif CFG.image_provider == "sdwebui":
@@ -51,12 +50,12 @@ def generate_image_with_hf(prompt: str, filename: str) -> str:
     API_URL = (
         f"https://api-inference.huggingface.co/models/{CFG.huggingface_image_model}"
     )
-    if CFG.huggingface_api_token is None:
+    if global_config.huggingface_api_token is None:
         raise ValueError(
             "You need to set your Hugging Face API token in the config file."
         )
     headers = {
-        "Authorization": f"Bearer {CFG.huggingface_api_token}",
+        "Authorization": f"Bearer {global_config.huggingface_api_token}",
         "X-Use-Cache": "false",
     }
 
@@ -87,14 +86,7 @@ def generate_image_with_dalle(prompt: str, filename: str, size: int) -> str:
     Returns:
         str: The filename of the image
     """
-
-    # Check for supported image sizes
-    if size not in [256, 512, 1024]:
-        closest = min([256, 512, 1024], key=lambda x: abs(x - size))
-        print(
-            f"DALL-E only supports image sizes of 256x256, 512x512, or 1024x1024. Setting to {closest}, was {size}."
-        )
-        size = closest
+    openai.api_key = global_config.openai_api_key
 
     response = openai.Image.create(
         prompt=prompt,

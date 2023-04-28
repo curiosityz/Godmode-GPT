@@ -26,7 +26,7 @@ class Spinner:
         while self.running:
             sys.stdout.write(f"{next(self.spinner)} {self.message}\r")
             sys.stdout.flush()
-            time.sleep(self.delay)
+            # time.sleep(self.delay)
             sys.stdout.write(f"\r{' ' * (len(self.message) + 2)}\r")
 
     def __enter__(self):
@@ -57,9 +57,7 @@ class Spinner:
             new_message (str): New message to display.
             delay (float): The delay in seconds between each spinner update.
         """
-        time.sleep(delay)
-        sys.stdout.write(
-            f"\r{' ' * (len(self.message) + 2)}\r"
-        )  # Clear the current message
+        # time.sleep(delay)
+        sys.stdout.write(f"\r{' ' * (len(self.message) + 2)}\r")  # Clear the current message
         sys.stdout.flush()
         self.message = new_message

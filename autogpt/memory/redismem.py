@@ -24,7 +24,7 @@ SCHEMA = [
 ]
 
 
-class RedisMemory(MemoryProviderSingleton):
+class RedisMemory(MemoryProvider):
     def __init__(self, cfg):
         """
         Initializes the Redis memory provider.

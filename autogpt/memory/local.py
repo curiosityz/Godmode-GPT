@@ -26,7 +26,7 @@ class CacheContent:
     )
 
 
-class LocalCache(MemoryProviderSingleton):
+class LocalCache(MemoryProvider):
     """A class that stores the memory in a local file"""
 
     def __init__(self, cfg) -> None:

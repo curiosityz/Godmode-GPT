@@ -9,10 +9,10 @@ from autogpt.config import Config
 from autogpt.processing.html import extract_hyperlinks, format_hyperlinks
 from autogpt.url_utils.validators import validate_url
 
-CFG = Config()
+global_config = Config()
 
 session = requests.Session()
-session.headers.update({"User-Agent": CFG.user_agent})
+session.headers.update({"User-Agent": global_config.user_agent})
 
 
 @validate_url

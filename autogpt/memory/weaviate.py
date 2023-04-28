@@ -20,7 +20,7 @@ def default_schema(weaviate_index):
     }
 
 
-class WeaviateMemory(MemoryProviderSingleton):
+class WeaviateMemory(MemoryProvider):
     def __init__(self, cfg):
         auth_credentials = self._build_auth_credentials(cfg)
 
