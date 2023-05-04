@@ -166,7 +166,7 @@ def delete_file(filename: str, **kwargs) -> str:
 
 
 @command("search_files", "Search Files", '"directory": "<directory>"')
-def search_files(cfg, **kwargs):
+def search_files(cfg, agent_id, **kwargs):
     """Search for files in a directory
 
     Args:
