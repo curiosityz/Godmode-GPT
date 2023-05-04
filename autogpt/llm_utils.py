@@ -90,7 +90,7 @@ def call_ai_function(
     # For each arg, if any are None, convert to "None":
     args = [str(arg) if arg is not None else "None" for arg in args]
     # parse args to comma separated string
-    args: str = ", ".join(args)
+    sargs: str = ", ".join(args)
     messages: List[Message] = [
         {
             "role": "system",
