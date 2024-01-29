@@ -1,5 +1,4 @@
-import pinecone
-from colorama import Fore, Style
+from pinecone import Pinecone
 from autogpt.api_log import CRITICAL, ERROR, print_log
 
 from autogpt.llm import get_ada_embedding
@@ -10,11 +9,12 @@ global_config = Config()
 
 pinecone_api_key = global_config.pinecone_api_key
 pinecone_region = global_config.pinecone_region
+
 if pinecone_api_key:
     if pinecone_region:
-        pinecone.init(api_key=pinecone_api_key, region=pinecone_region)
+        pinecone = Pinecone(api_key=pinecone_api_key, region=pinecone_region)
     else:
-        pinecone.init(api_key=pinecone_api_key)
+        pinecone = Pinecone(api_key=pinecone_api_key)
 else:
     print("Pinecone API key and region not set. " "Please set them in the config file.")
 
@@ -33,12 +33,6 @@ class PineconeMemory(MemoryProvider):
         # we'll need a more complicated and robust system if we want to start with
         #  memory.
         self.vec_num = 0
-
-        try:
-            pinecone.whoami()
-        except Exception as e:
-            print_log("Failed to connect to Pinecone", severity=CRITICAL, errorMsg=e)
-            raise e
 
         # if table_name not in pinecone.list_indexes():
         #     pinecone.create_index(
@@ -81,7 +75,7 @@ class PineconeMemory(MemoryProvider):
         namespace = self.cfg.agent_id
         try:
             results = self.index.query(
-                query_embedding,
+                vector=query_embedding,
                 top_k=num_relevant,
                 include_metadata=True,
                 namespace=namespace,
