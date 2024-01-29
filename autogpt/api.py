@@ -7,7 +7,6 @@ import traceback
 from uuid import uuid4
 from autogpt.commands.command import CommandRegistry
 from autogpt.config.ai_config import AIConfig
-from autogpt.memory import get_memory
 import autogpt.llm.chat as chat
 from autogpt.config import Config
 import os
