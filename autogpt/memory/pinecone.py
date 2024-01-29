@@ -10,8 +10,11 @@ global_config = Config()
 
 pinecone_api_key = global_config.pinecone_api_key
 pinecone_region = global_config.pinecone_region
-if pinecone_api_key and pinecone_region:
-    pinecone.init(api_key=pinecone_api_key, environment=pinecone_region)
+if pinecone_api_key:
+    if pinecone_region:
+        pinecone.init(api_key=pinecone_api_key, region=pinecone_region)
+    else:
+        pinecone.init(api_key=pinecone_api_key)
 else:
     print("Pinecone API key and region not set. " "Please set them in the config file.")
 
@@ -24,7 +27,7 @@ class PineconeMemory(MemoryProvider):
         dimension = 1536
         metric = "cosine"
         pod_type = "p1"
-        table_name = "auto-gpt"
+        table_name = global_config.pinecone_table_name or "auto-gpt"
         # this assumes we don't start with memory.
         # for now this works.
         # we'll need a more complicated and robust system if we want to start with

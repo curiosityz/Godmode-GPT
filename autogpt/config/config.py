@@ -109,6 +109,7 @@ class Config():
 
         self.pinecone_api_key = os.getenv("PINECONE_API_KEY")
         self.pinecone_region = os.getenv("PINECONE_ENV")
+        self.pinecone_table_name = os.getenv("PINECONE_TABLE_NAME")
 
         self.weaviate_host = os.getenv("WEAVIATE_HOST")
         self.weaviate_port = os.getenv("WEAVIATE_PORT")
