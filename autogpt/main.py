@@ -4,6 +4,8 @@ import sys
 from pathlib import Path
 
 from colorama import Fore, Style
+from dotenv import load_dotenv
+import path
 
 from autogpt.agent.agent import Agent
 from autogpt.commands.command import CommandRegistry
@@ -21,6 +23,7 @@ from autogpt.utils import (
 from autogpt.workspace import Workspace
 from scripts.install_plugin_deps import install_plugin_dependencies
 
+from @google/generative-ai import GoogleGenerativeAI, HarmCategory, HarmBlockThreshold
 
 def run_auto_gpt(
     continuous: bool,
@@ -59,6 +62,12 @@ def run_auto_gpt(
         allow_downloads,
         skip_news,
     )
+
+    # Load environment variables from .env file
+    result = load_dotenv({ path: path.resolve(__dirname, '.env') })
+    if (result.error) {
+        throw result.error
+    }
 
     if not cfg.skip_news:
         motd, is_new_motd = get_latest_bulletin()
@@ -183,4 +192,33 @@ def run_auto_gpt(
         triggering_prompt=DEFAULT_TRIGGERING_PROMPT,
         workspace_directory=workspace_directory,
     )
+
+    # Initialize GoogleGenerativeAI model using the API key from the .env file
+    apiKey = process.env.GEMINI_API_KEY
+    genAI = new GoogleGenerativeAI(apiKey)
+
+    model = genAI.getGenerativeModel({
+        model: 'gemini-1.5-pro-exp-0827',
+    })
+
+    generationConfig = {
+        temperature: 1,
+        topP: 0.95,
+        topK: 64,
+        maxOutputTokens: 8192,
+        responseMimeType: 'text/plain',
+    }
+
+    async def run():
+        chatSession = model.startChat({
+            generationConfig,
+            history: [],
+        })
+
+        result = await chatSession.sendMessage('What is the weather today?')
+        firstCandidate = result.response.candidates[0]
+        responseText = firstCandidate.content.parts[0] # Extract the text from parts
+        console.log('Response Text:', responseText) # Log the actual response text
+    run()
+
     agent.start_interaction_loop()
