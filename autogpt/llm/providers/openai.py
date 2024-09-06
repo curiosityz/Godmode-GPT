@@ -31,7 +31,28 @@ OPEN_AI_EMBEDDING_MODELS = {
     ),
 }
 
+GOOGLE_CHAT_MODELS = {
+    "chat-bison-001": ChatModelInfo(
+        name="chat-bison-001",
+        prompt_token_cost=0.002,
+        completion_token_cost=0.002,
+        max_tokens=4096,
+    ),
+}
+
+GOOGLE_EMBEDDING_MODELS = {
+    "text-embedding-gecko-001": EmbeddingModelInfo(
+        name="text-embedding-gecko-001",
+        prompt_token_cost=0.0004,
+        completion_token_cost=0.0,
+        max_tokens=8191,
+        embedding_dimensions=1536,
+    ),
+}
+
 OPEN_AI_MODELS = {
     **OPEN_AI_CHAT_MODELS,
     **OPEN_AI_EMBEDDING_MODELS,
+    **GOOGLE_CHAT_MODELS,
+    **GOOGLE_EMBEDDING_MODELS,
 }

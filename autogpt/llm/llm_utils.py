@@ -6,10 +6,10 @@ from itertools import islice
 from typing import List, Optional
 
 import numpy as np
-import openai
 import tiktoken
 from colorama import Fore, Style
-from openai.error import APIError, RateLimitError, Timeout
+from google.generativeai import chat as google_chat
+from google.api_core.exceptions import GoogleAPIError, RetryError
 
 from autogpt.config import Config
 from autogpt.llm.api_manager import ApiManager
@@ -17,12 +17,12 @@ from autogpt.llm.base import Message
 from autogpt.logs import logger
 
 
-def retry_openai_api(
+def retry_google_api(
     num_retries: int = 10,
     backoff_base: float = 2.0,
     warn_user: bool = True,
 ):
-    """Retry an OpenAI API call.
+    """Retry a Google API call.
 
     Args:
         num_retries int: Number of retries. Defaults to 10.
@@ -32,8 +32,8 @@ def retry_openai_api(
     retry_limit_msg = f"{Fore.RED}Error: " f"Reached rate limit, passing...{Fore.RESET}"
     api_key_error_msg = (
         f"Please double check that you have setup a "
-        f"{Fore.CYAN + Style.BRIGHT}PAID{Style.RESET_ALL} OpenAI API Account. You can "
-        f"read more here: {Fore.CYAN}https://docs.agpt.co/setup/#getting-an-api-key{Fore.RESET}"
+        f"{Fore.CYAN + Style.BRIGHT}PAID{Style.RESET_ALL} Google API Account. You can "
+        f"read more here: {Fore.CYAN}https://cloud.google.com/docs/authentication{Fore.RESET}"
     )
     backoff_msg = (
         f"{Fore.RED}Error: API Bad gateway. Waiting {{backoff}} seconds...{Fore.RESET}"
@@ -48,7 +48,7 @@ def retry_openai_api(
                 try:
                     return func(*args, **kwargs)
 
-                except RateLimitError:
+                except RetryError:
                     if attempt == num_attempts:
                         raise
 
@@ -57,8 +57,8 @@ def retry_openai_api(
                         logger.double_check(api_key_error_msg)
                         user_warned = True
 
-                except APIError as e:
-                    if (e.http_status != 502) or (attempt == num_attempts):
+                except GoogleAPIError as e:
+                    if (e.code != 502) or (attempt == num_attempts):
                         raise
 
                 backoff = backoff_base ** (attempt + 2)
@@ -114,7 +114,7 @@ def create_chat_completion(
     temperature: float = None,
     max_tokens: Optional[int] = None,
 ) -> str:
-    """Create a chat completion using the OpenAI API
+    """Create a chat completion using the Google Generative AI SDK / Gemini API
 
     Args:
         messages (List[Message]): The messages to send to the chat completion
@@ -158,26 +158,26 @@ def create_chat_completion(
             temperature=temperature,
             max_tokens=max_tokens,
         )
-    except RateLimitError:
+    except RetryError:
         logger.debug(
             f"{Fore.RED}Error: ", f"Reached rate limit, passing...{Fore.RESET}"
         )
         if not warned_user:
             logger.double_check(
-                f"Please double check that you have setup a {Fore.CYAN + Style.BRIGHT}PAID{Style.RESET_ALL} OpenAI API Account. "
-                + f"You can read more here: {Fore.CYAN}https://docs.agpt.co/setup/#getting-an-api-key{Fore.RESET}"
+                f"Please double check that you have setup a {Fore.CYAN + Style.BRIGHT}PAID{Style.RESETALL} Google API Account. "
+                + f"You can read more here: {Fore.CYAN}https://cloud.google.com/docs/authentication{Fore.RESET}"
             )
             warned_user = True
-    except (APIError, Timeout) as e:
-        if e.http_status != 502:
+    except GoogleAPIError as e:
+        if e.code != 502:
             raise
         if attempt == num_retries - 1:
             raise
         
     if response is None:
-        return "OpenAI API error"
+        return "Google API error"
 
-    resp = response.choices[0].message["content"]
+    resp = response.candidates[0].message["content"]
     for plugin in cfg.plugins:
         if not plugin.can_handle_on_response():
             continue
@@ -214,29 +214,23 @@ def get_ada_embedding(text: str, cfg: Config) -> List[float]:
     model = cfg.embedding_model
     text = text.replace("\n", " ")
 
-    if cfg.use_azure:
-        kwargs = {"engine": cfg.get_azure_deployment_id_for_model(model)}
-    else:
-        kwargs = {"model": model}
-
-    embedding = create_embedding(text, cfg, **kwargs)
+    embedding = create_embedding(text, cfg, model=model)
     return embedding
 
 
 def create_embedding(
     text: str,
     cfg: Config,
-    *_,
-    **kwargs,
-) -> openai.Embedding:
-    """Create an embedding using the OpenAI API
+    model: str,
+) -> List[float]:
+    """Create an embedding using the Google Generative AI SDK / Gemini API
 
     Args:
         text (str): The text to embed.
-        kwargs: Other arguments to pass to the OpenAI API embedding creation call.
+        model (str): The model to use for embedding.
 
     Returns:
-        openai.Embedding: The embedding object.
+        List[float]: The embedding.
     """
     chunk_embeddings = []
     chunk_lengths = []
@@ -245,16 +239,16 @@ def create_embedding(
         tokenizer_name=cfg.embedding_tokenizer,
         chunk_length=cfg.embedding_token_limit,
     ):
-        embedding = openai.Embedding.create(
+        embedding = google_chat.Embedding.create(
             input=[chunk],
-            api_key=cfg.openai_api_key,
-            **kwargs,
+            model=model,
+            api_key=cfg.google_api_key,
         )
         api_manager = ApiManager()
         api_manager.update_cost(
             prompt_tokens=embedding.usage.prompt_tokens,
             completion_tokens=0,
-            model=cfg.embedding_model,
+            model=model,
         )
         chunk_embeddings.append(embedding["data"][0]["embedding"])
         chunk_lengths.append(len(chunk))

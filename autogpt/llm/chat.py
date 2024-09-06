@@ -1,7 +1,7 @@
 import time
 from random import shuffle
 
-from openai.error import RateLimitError
+from google.api_core.exceptions import GoogleAPIError
 from autogpt.api_log import print_log
 
 from autogpt.config import Config
@@ -61,12 +61,12 @@ def chat_with_ai(
     token_limit,
     cfg: Config,
 ):
-    """Interact with the OpenAI API, sending the prompt, user input, message history,
+    """Interact with the Google Generative AI SDK / Gemini API, sending the prompt, user input, message history,
     and permanent memory."""
     while True:
         try:
             """
-            Interact with the OpenAI API, sending the prompt, user input,
+            Interact with the Google Generative AI SDK / Gemini API, sending the prompt, user input,
                 message history, and permanent memory.
 
             Args:
@@ -255,8 +255,8 @@ def chat_with_ai(
             )
 
             return assistant_reply
-        except RateLimitError as e:
+        except GoogleAPIError as e:
             # TODO: When we switch to langchain, this is built in
-            print("Error: ", "API Rate Limit Reached. Waiting 10 seconds...")
+            print("Error: ", "Google API Error. Waiting 10 seconds...")
             raise e
             # time.sleep(10)
