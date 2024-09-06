@@ -176,8 +176,13 @@ class Config():
         plugins_denylist = os.getenv("DENYLISTED_PLUGINS")
         if plugins_denylist:
             self.plugins_denylist = plugins_denylist.split(",")
+
         else:
             self.plugins_denylist = []
+
+        self.google_api_key = os.getenv("GOOGLE_API_KEY")
+        self.google_project_id = os.getenv("GOOGLE_PROJECT_ID")
+        self.google_model = os.getenv("GOOGLE_MODEL", "chat-bison-001")
 
     def get_azure_deployment_id_for_model(self, model: str) -> str:
         """
